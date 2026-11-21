@@ -1,0 +1,6 @@
+{
+  "name": "ISS Port Intelligence — Coatzacoalcos",
+  "description": "Plataforma integral de inteligencia portuaria, terminales, muelles, restricciones, tarifarios, cálculos PDA y centro documental para el Puerto de Coatzacoalcos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
