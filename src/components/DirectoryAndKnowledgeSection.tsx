@@ -6,6 +6,7 @@ import {
   GitFork,
   Layers,
   Search,
+  SlidersHorizontal,
   Users,
 } from 'lucide-react';
 import {
@@ -33,7 +34,7 @@ interface DirectoryAndKnowledgeSectionProps {
   opticGlossary: OpticConcept[];
   appsScripts: AppsScriptTool[];
   lang: Language;
-  onOpenContentManager: () => void;
+  onOpenContentManager: (tab?: 'apps' | 'directory') => void;
 }
 
 type HubTab = 'directory' | 'procedures' | 'optic' | 'apps';
@@ -53,7 +54,6 @@ export function DirectoryAndKnowledgeSection({
   const [dirFilter, setDirFilter] = useState<DirectoryViewFilter>('ALL');
   const [search, setSearch] = useState('');
 
-  // Order requested: Organigrama Empresarial, Directorio ISS, Subagentes, Proveedores, CLS/HUB, Clientes / Dow Jones
   const filterButtons: { id: DirectoryViewFilter; label: string }[] = [
     {
       id: 'ALL',
@@ -141,6 +141,77 @@ export function DirectoryAndKnowledgeSection({
   const showOrgChart =
     (dirFilter === 'ALL' || dirFilter === 'ORG') && !search.trim() && orgChart.length > 0;
 
+  const renderNodeExtras = (node: OrgChartNode, dark = false) => (
+    <>
+      {node.customFields && node.customFields.length > 0 && (
+        <div
+          className={`mt-3 pt-2.5 border-t grid grid-cols-1 gap-1 text-[11.5px] ${
+            dark ? 'border-white/15 text-[#cbd5e1]' : 'border-[#e5e5ea] text-[#424245]'
+          }`}
+        >
+          {node.customFields.map((cf) => (
+            <div key={cf.id} className="flex items-center justify-between gap-2">
+              <span className={dark ? 'text-[#94a3b8]' : 'text-[#6e6e73]'}>{cf.label}</span>
+              <span className="font-mono font-medium">{cf.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {node.subDepartments && node.subDepartments.length > 0 && (
+        <div
+          className={`mt-3 pt-2.5 border-t space-y-2 ${
+            dark ? 'border-white/15' : 'border-[#e5e5ea]'
+          }`}
+        >
+          <div
+            className={`text-[10.5px] font-semibold uppercase tracking-wider ${
+              dark ? 'text-[#93c5fd]' : 'text-[#0066cc]'
+            }`}
+          >
+            {lang === 'es' ? 'Subdepartamentos' : 'Sub-departments'}
+          </div>
+          {node.subDepartments.map((sub) => (
+            <div
+              key={sub.id}
+              className={`p-2.5 rounded-lg border text-left ${
+                dark
+                  ? 'bg-white/5 border-white/15 text-white'
+                  : 'bg-[#f5f5f7] border-[#e5e5ea] text-[#1d1d1f]'
+              }`}
+            >
+              <div className="text-[12px] font-semibold">
+                {lang === 'es' ? sub.name : sub.nameEn ?? sub.name}
+              </div>
+              <div className={`text-[11.5px] ${dark ? 'text-[#cbd5e1]' : 'text-[#424245]'}`}>
+                {lang === 'es' ? sub.leadOrTeam : sub.leadOrTeamEn ?? sub.leadOrTeam}
+              </div>
+              {sub.email && (
+                <div
+                  className={`text-[11px] font-mono mt-0.5 ${
+                    dark ? 'text-[#7dd3fc]' : 'text-[#0066cc]'
+                  }`}
+                >
+                  {sub.email}
+                </div>
+              )}
+              {sub.fields && sub.fields.length > 0 && (
+                <div className="mt-1.5 pt-1.5 border-t border-black/10 space-y-0.5 text-[11px]">
+                  {sub.fields.map((f) => (
+                    <div key={f.id} className="flex justify-between gap-2">
+                      <span className={dark ? 'text-[#94a3b8]' : 'text-[#6e6e73]'}>{f.label}</span>
+                      <span className="font-mono">{f.value}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+
   return (
     <section id="hub-knowledge" className="bg-white py-20 lg:py-24 border-b border-[#e5e5ea]">
       <div className="max-w-[1200px] mx-auto px-6">
@@ -148,8 +219,8 @@ export function DirectoryAndKnowledgeSection({
           <div className="max-w-2xl">
             <p className="text-[13px] font-medium text-[#0066cc] mb-2">
               {lang === 'es'
-                ? '10. Organigrama Empresarial, Directorios y Conocimiento'
-                : '10. Corporate Org Chart, Global Directory & Knowledge'}
+                ? '11. Organigrama Empresarial, Directorios y Conocimiento'
+                : '11. Corporate Org Chart, Global Directory & Knowledge'}
             </p>
             <h2 className="font-display text-[clamp(1.85rem,3.2vw,2.75rem)] font-semibold tracking-tight text-[#1d1d1f] [text-wrap:balance]">
               {lang === 'es'
@@ -251,15 +322,31 @@ export function DirectoryAndKnowledgeSection({
                         : 'Corporate Org Chart · ISS Mexico Operational Structure'}
                     </h3>
                   </div>
-                  <span className="text-[12px] text-[#6e6e73]">
-                    {orgChart.length} {lang === 'es' ? 'nodos operativos' : 'organizational tiers'}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[12px] text-[#6e6e73]">
+                      {orgChart.length} {lang === 'es' ? 'nodos operativos' : 'organizational nodes'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onOpenContentManager('directory')}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-[#1d1d1f] bg-white hover:bg-[#ebebef] border border-[#d2d2d7] rounded-lg transition-colors"
+                    >
+                      <SlidersHorizontal className="w-3.5 h-3.5" />
+                      {lang === 'es' ? 'Editar organigrama' : 'Edit org chart'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Tier 1 */}
                 {level1Nodes.length > 0 && (
                   <div className="flex flex-col items-center">
-                    <div className="grid grid-cols-1 gap-4 w-full max-w-lg">
+                    <div
+                      className={
+                        level1Nodes.length === 1
+                          ? 'grid grid-cols-1 gap-4 w-full max-w-xl'
+                          : 'grid grid-cols-1 md:grid-cols-2 gap-4 w-full'
+                      }
+                    >
                       {level1Nodes.map((node) => (
                         <div
                           key={node.id}
@@ -281,6 +368,7 @@ export function DirectoryAndKnowledgeSection({
                               {node.email}
                             </div>
                           )}
+                          {renderNodeExtras(node, true)}
                         </div>
                       ))}
                     </div>
@@ -309,6 +397,7 @@ export function DirectoryAndKnowledgeSection({
                                 ? node.holderOrTeam
                                 : node.holderOrTeamEn ?? node.holderOrTeam}
                             </div>
+                            {renderNodeExtras(node, false)}
                           </div>
                           {node.email && (
                             <div className="mt-3 pt-2.5 border-t border-[#e5e5ea] text-[12px] font-mono text-[#1d1d1f] break-all">
@@ -336,26 +425,29 @@ export function DirectoryAndKnowledgeSection({
                     {level3Nodes.map((node) => (
                       <div
                         key={node.id}
-                        className="rounded-xl bg-white p-5 border border-[#e5e5ea] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                        className="rounded-xl bg-white p-5 border border-[#e5e5ea] flex flex-col justify-between gap-3"
                       >
-                        <div>
-                          <div className="text-[11px] font-medium text-[#6e6e73] uppercase tracking-wider">
-                            {lang === 'es' ? node.department : node.departmentEn}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <div className="text-[11px] font-medium text-[#6e6e73] uppercase tracking-wider">
+                              {lang === 'es' ? node.department : node.departmentEn}
+                            </div>
+                            <div className="mt-0.5 font-display text-[15px] font-semibold text-[#1d1d1f]">
+                              {lang === 'es' ? node.title : node.titleEn}
+                            </div>
+                            <div className="text-[13px] text-[#424245]">
+                              {lang === 'es'
+                                ? node.holderOrTeam
+                                : node.holderOrTeamEn ?? node.holderOrTeam}
+                            </div>
                           </div>
-                          <div className="mt-0.5 font-display text-[15px] font-semibold text-[#1d1d1f]">
-                            {lang === 'es' ? node.title : node.titleEn}
-                          </div>
-                          <div className="text-[13px] text-[#424245]">
-                            {lang === 'es'
-                              ? node.holderOrTeam
-                              : node.holderOrTeamEn ?? node.holderOrTeam}
-                          </div>
+                          {node.email && (
+                            <div className="text-[12px] font-mono text-[#0066cc] shrink-0">
+                              {node.email}
+                            </div>
+                          )}
                         </div>
-                        {node.email && (
-                          <div className="text-[12px] font-mono text-[#0066cc] shrink-0">
-                            {node.email}
-                          </div>
-                        )}
+                        {renderNodeExtras(node, false)}
                       </div>
                     ))}
                   </div>
@@ -363,7 +455,7 @@ export function DirectoryAndKnowledgeSection({
               </div>
             )}
 
-            {/* 2–6. Separated Directory Cards (ISS -> Subagentes -> Proveedores -> CLS/HUB -> Clientes / Dow Jones) */}
+            {/* 2–6. Separated Directory Cards */}
             {portDirectory.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {portDirectory.map((entry) => (
@@ -518,7 +610,7 @@ export function DirectoryAndKnowledgeSection({
               </p>
               <button
                 type="button"
-                onClick={onOpenContentManager}
+                onClick={() => onOpenContentManager('apps')}
                 className="px-4 py-2 text-[13px] font-medium text-[#1d1d1f] bg-[#f5f5f7] hover:bg-[#e5e5ea] border border-[#d2d2d7] rounded-lg transition-colors"
               >
                 {lang === 'es' ? 'Configurar enlaces' : 'Configure URLs'}

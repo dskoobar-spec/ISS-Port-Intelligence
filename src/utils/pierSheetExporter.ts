@@ -316,12 +316,13 @@ export async function renderPierSheetPngDataUrl(
   ctx.closePath();
   ctx.fill();
 
-  // Right legibility scrim for motto
-  const rightScrim = ctx.createLinearGradient(W - 440, 0, W, 0);
+  // Top-right legibility scrim for integrated Inchcape logo & motto
+  const rightScrim = ctx.createLinearGradient(W - 560, 0, W, 0);
   rightScrim.addColorStop(0, 'rgba(3, 27, 56, 0)');
-  rightScrim.addColorStop(1, 'rgba(3, 27, 56, 0.65)');
+  rightScrim.addColorStop(0.55, 'rgba(3, 27, 56, 0.58)');
+  rightScrim.addColorStop(1, 'rgba(3, 27, 56, 0.86)');
   ctx.fillStyle = rightScrim;
-  ctx.fillRect(W - 440, 0, 440, heroBottom + 40);
+  ctx.fillRect(W - 560, 0, 560, heroBottom + 40);
   ctx.restore();
 
   // White swooping wave mask at bottom of Hero
@@ -334,57 +335,94 @@ export async function renderPierSheetPngDataUrl(
   ctx.closePath();
   ctx.fill();
 
-  // Hero Brand Block (Top-left)
+  // Integrated Top-Right Inchcape Brand Emblem (part of header, no box)
+  const logoRight = W - 64;
+  const arcCx = logoRight - 46;
+  const arcCy = 86;
+  ctx.save();
   ctx.fillStyle = '#ffffff';
-  ctx.font = '700 32px "Plus Jakarta Sans", Arial, sans-serif';
-  ctx.textAlign = 'left';
+  ctx.font = '800 34px "Plus Jakarta Sans", Arial, sans-serif';
+  ctx.textAlign = 'right';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText(sheet.brandPrimary || 'INCHCAPE', 64, 72);
+  ctx.fillText(sheet.brandPrimary || 'INCHCAPE', logoRight - 96, 86);
 
-  ctx.fillStyle = '#ef4444';
-  ctx.font = '700 11px "Plus Jakarta Sans", Arial, sans-serif';
-  ctx.fillText(sheet.brandSecondary || 'SHIPPING SERVICES', 110, 88);
+  ctx.fillStyle = '#e11d48';
+  ctx.font = '700 11.5px "Plus Jakarta Sans", Arial, sans-serif';
+  ctx.fillText(sheet.brandSecondary || 'SHIPPING SERVICES', logoRight - 96, 104);
 
-  // Subtle curved brand arc next to INCHCAPE
+  // Concentric compass swooshes + red dart
   ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 4.2;
+  ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.arc(280, 62, 22, -Math.PI * 0.45, Math.PI * 0.55);
+  ctx.arc(arcCx, arcCy, 32, -Math.PI * 0.72, Math.PI * 0.42);
   ctx.stroke();
 
-  // Gold horizontal bar
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(arcCx, arcCy, 25, -Math.PI * 0.65, Math.PI * 0.36);
+  ctx.stroke();
+
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.arc(arcCx, arcCy, 19, -Math.PI * 0.58, Math.PI * 0.30);
+  ctx.stroke();
+
+  // Red compass tip + white swallow silhouette
+  ctx.fillStyle = '#e11d48';
+  ctx.beginPath();
+  ctx.moveTo(arcCx + 38, arcCy - 36);
+  ctx.lineTo(arcCx + 21, arcCy - 23);
+  ctx.lineTo(arcCx + 27, arcCy - 17);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(arcCx - 6, arcCy - 6);
+  ctx.lineTo(arcCx + 22, arcCy - 22);
+  ctx.lineTo(arcCx + 11, arcCy + 7);
+  ctx.lineTo(arcCx + 9, arcCy - 7);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Gold horizontal bar (Left Hero Anchor)
   ctx.fillStyle = '#f59e0b';
-  ctx.fillRect(64, 102, 138, 3);
+  ctx.fillRect(64, 72, 138, 3);
 
   // Subtitle TASP PAJARITOS
   ctx.fillStyle = '#dbeafe';
   ctx.font = '500 17px "Plus Jakarta Sans", Arial, sans-serif';
-  ctx.fillText(sheet.subtitle, 64, 136);
+  ctx.textAlign = 'left';
+  ctx.fillText(sheet.subtitle, 64, 114);
 
   // Giant Ice Blue Number
   ctx.fillStyle = '#8ce0f6';
   ctx.font = '800 128px Georgia, "Times New Roman", serif';
-  ctx.fillText(sheet.pierNumber, 62, 258);
+  ctx.fillText(sheet.pierNumber, 62, 240);
 
   // Pier Title + Side
   const numWidth = ctx.measureText(sheet.pierNumber).width;
   const titleX = 62 + numWidth + 24;
   ctx.fillStyle = '#ffffff';
   ctx.font = '700 72px Georgia, "Times New Roman", serif';
-  ctx.fillText(sheet.pierTitle, titleX, 218);
+  ctx.fillText(sheet.pierTitle, titleX, 200);
 
   if (sheet.pierSide) {
     ctx.fillStyle = '#9be7f9';
     ctx.font = '700 54px Georgia, "Times New Roman", serif';
-    ctx.fillText(sheet.pierSide, titleX, 276);
+    ctx.fillText(sheet.pierSide, titleX, 258);
   }
 
   // Gold bar under number
   ctx.fillStyle = '#f59e0b';
-  ctx.fillRect(64, 286, 138, 3);
+  ctx.fillRect(64, 274, 138, 3);
 
   // Sub-notes
-  let noteY = 320;
+  let noteY = 308;
   ctx.fillStyle = '#e0f2fe';
   ctx.font = '400 18px "DM Sans", Arial, sans-serif';
   if (sheet.bcmMaxHeightNote) {
@@ -738,15 +776,9 @@ export function generatePierSheetStandaloneHtml(
           : ''
       }
       <div style="position:absolute;inset:0;background:linear-gradient(108deg, rgba(3,27,56,0.97) 0%, rgba(7,45,86,0.92) 45%, rgba(13,73,133,0.18) 72%, rgba(3,27,56,0.55) 100%);"></div>
-      <div style="position:relative;z-index:2;padding:24px 40px;color:#fff;display:flex;justify-content:space-between;align-items:flex-end;height:220px;box-sizing:border-box;">
+      <div style="position:relative;z-index:2;padding:24px 40px;color:#fff;display:flex;justify-content:space-between;align-items:stretch;height:235px;box-sizing:border-box;">
         <div>
-          <div style="font-size:22px;font-weight:800;letter-spacing:0.02em;">${escapeHtml(
-            sheet.brandPrimary || 'INCHCAPE'
-          )}</div>
-          <div style="font-size:9px;font-weight:700;letter-spacing:0.18em;color:#f87171;margin-left:22px;">${escapeHtml(
-            sheet.brandSecondary || 'SHIPPING SERVICES'
-          )}</div>
-          <div style="width:95px;height:2px;background:#f59e0b;margin:8px 0;"></div>
+          <div style="width:95px;height:2px;background:#f59e0b;margin:0 0 10px 0;"></div>
           <div style="font-size:11px;letter-spacing:0.18em;color:#dbeafe;margin-bottom:4px;">${escapeHtml(
             sheet.subtitle
           )}</div>
@@ -779,9 +811,25 @@ export function generatePierSheetStandaloneHtml(
             sheet.measurementNote
           )}</div>
         </div>
-        <div style="text-align:right;font-size:11px;font-weight:600;letter-spacing:0.12em;line-height:1.45;color:#fff;">
-          ${escapeHtml(sheet.motto || DEFAULT_MOTTO)}
-          <div style="width:64px;height:2px;background:#f59e0b;margin-left:auto;margin-top:6px;"></div>
+        <div style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;text-align:right;">
+          <svg width="205" height="66" viewBox="0 0 240 78" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Inchcape Shipping Services">
+            <text x="12" y="48" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="25" fill="#ffffff" letter-spacing="1">${escapeHtml(
+              sheet.brandPrimary || 'INCHCAPE'
+            )}</text>
+            <polygon points="103,29 109,43 97,43" fill="#e11d48" />
+            <text x="42" y="64" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="9.5" fill="#e11d48" letter-spacing="2.4">${escapeHtml(
+              sheet.brandSecondary || 'SHIPPING SERVICES'
+            )}</text>
+            <path d="M164 26 A31 31 0 1 1 196 68" fill="none" stroke="#ffffff" stroke-width="4.2" stroke-linecap="round"/>
+            <path d="M169 29 A24 24 0 1 1 194 62" fill="none" stroke="#cbd5e1" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M174 33 A18 18 0 1 1 191 56" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+            <polygon points="215,10 203,20 207,24" fill="#e11d48"/>
+            <path d="M180 34 L204 20 L195 45 L193 33 Z" fill="#ffffff"/>
+          </svg>
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;line-height:1.45;color:#fff;">
+            ${escapeHtml(sheet.motto || DEFAULT_MOTTO)}
+            <div style="width:64px;height:2px;background:#f59e0b;margin-left:auto;margin-top:6px;"></div>
+          </div>
         </div>
       </div>
       <svg viewBox="0 0 1200 48" preserveAspectRatio="none" style="position:absolute;bottom:-1px;left:0;width:100%;height:34px;display:block;z-index:3;">

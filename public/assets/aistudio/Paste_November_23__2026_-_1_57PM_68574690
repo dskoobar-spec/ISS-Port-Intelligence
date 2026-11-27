@@ -1,0 +1,413 @@
+1. Acetona — DMK
+
+Es un solvente muy inflamable. Durante la transferencia, el problema principal es contener sus vapores, evitar ignición y conservar la calidad del producto. Su capacidad como solvente también obliga a revisar empaques y recubrimientos. La ficha OIT/OMS documenta su inflamabilidad e incompatibilidades químicas. www.inchem.org
+Aspecto	Restricción y aplicación al manejo
+Conexión de líquido	Manguera o brazo compatible con acetona, incluidos revestimiento interior, juntas, sellos de bomba y adaptadores. No basta con que la cubierta exterior de la manguera esté en buen estado.
+Limpieza	El circuito debe estar libre de producto anterior y del agente de limpieza. Para grados con exigencia de humedad, debe comprobarse también el secado.
+Carga	Acordar un caudal inicial reducido para verificar alineación y estanqueidad; aumentar únicamente dentro del límite aprobado del sistema. Evitar llenado por caída libre cuando el diseño y procedimiento exijan carga sumergida.
+Descarga	La bomba debe trabajar dentro de los límites de presión, caudal y succión. El final de descarga debe coordinarse para evitar funcionamiento en seco o entrada de gas no prevista.
+Vapores	Definir cómo respira el tanque receptor y si existe retorno o tratamiento de vapores. Una conexión de vapores no puede instalarse sin comprobar compatibilidad y contrapresión.
+Segregación	Evitar contacto con oxidantes y otros incompatibles de la SDS. La segregación incluye líneas comunes, drenajes y residuos.
+Restricción para iniciar	No transferir con fugas, materiales sin compatibilidad acreditada, circuito de vapores sin resolver o capacidad insuficiente del tanque receptor.
+
+
+Dato que debe pedirse: concentración y grado, agua admisible, materiales del circuito, producto previo, presión máxima en conexión y procedimiento de terminación.
+
+2. Alcohol etílico — etanol
+
+Antes de definir el manejo hay que precisar si es anhidro, hidratado, desnaturalizado, industrial o alimentario. Esas diferencias afectan calidad, limpieza y segregación.
+
+El etanol anhidro es muy inflamable; la ficha internacional prescribe sistema cerrado y desaconseja utilizar aire comprimido para llenado, descarga o manipulación. www.inchem.org
+Aspecto	Restricción y aplicación
+Etanol anhidro	El agua residual de lavado, condensación o líneas compartidas puede dejarlo fuera de especificación. Debe acordarse el criterio de sequedad.
+Etanol hidratado	La concentración debe conservarse; no se acepta cualquier mezcla con agua por tratarse de un grado hidratado.
+Etanol alimentario	Tanques, bombas, mangueras y líneas deben cumplir los criterios de inocuidad del receptor. Un circuito apto para alcohol industrial no queda automáticamente aceptado.
+Etanol desnaturalizado	Identificar desnaturalizante y concentración: modifican composición, riesgos y aceptación del destinatario.
+Conexiones	Circuito cerrado de líquido; confirmar necesidad y disposición de vapores. Verificar juntas y sellos para la mezcla exacta.
+Bombeo	Controlar fugas, presión y caudal; no improvisar el vaciado mediante aire comprimido.
+Cambio de grado	Validar limpieza y remanente de línea. Una pequeña cantidad del grado anterior puede afectar el lote receptor.
+
+
+Causa concreta de rechazo: descargar etanol anhidro por una línea recién lavada y todavía húmeda, o mezclar alcohol alimentario con remanentes de un grado desnaturalizado.
+
+3. Alcohol isopropílico — isopropanol / IPA
+
+El isopropanol exige transferencia cerrada y control de vapores inflamables. Puede atacar algunos plásticos y elastómeros; la compatibilidad debe comprobarse en todos los componentes mojados. Su ficha también indica que no debe emplearse aire comprimido para transferirlo. www.inchem.org
+- Carga: verificar concentración, limpieza y disponibilidad de volumen receptor antes de conectar.
+- Descarga: usar bomba y circuito compatibles; coordinar el cierre para impedir sobrepresión.
+- Agua: distinguir producto puro de soluciones acuosas; no comparten necesariamente especificación.
+- Conexiones: comprobar manguera interior, empaques, sellos y bridas, además de presión y temperatura de servicio.
+- Segregación: mantener separado de oxidantes y residuos incompatibles.
+- Restricción: no utilizar una manguera identificada solamente como “para químicos” sin tabla de compatibilidad para IPA.
+4. Metanol
+
+Además de inflamable, es tóxico. Un control de explosividad no demuestra por sí solo que la exposición del personal sea aceptable. La ficha OIT/OMS identifica toxicidad y efectos graves sobre la salud. inchem.org
+Etapa	Manejo y restricciones
+Preparación	Identificar pureza y contaminantes admisibles; comprobar que el circuito y tanque receptor estén aceptados para metanol.
+Conexión	Sistema cerrado con contención de goteos y componentes compatibles.
+Transferencia	Mantener vigilancia de fugas y vapores; definir protección y medición apropiadas para exposición a metanol.
+Muestreo	Preferir un método que reduzca apertura y exposición, conforme al equipo y procedimiento aprobados.
+Terminación	Drenar y despresurizar de forma controlada; evitar abrir una conexión que conserve líquido o presión.
+Residuos	Recoger remanentes y absorbentes contaminados como corresponda; no descargarlos al drenaje.
+
+
+Restricción específica: no tratarlo como etanol por su apariencia o por pertenecer ambos a la familia de alcoholes. Limpieza, exposición y respuesta deben establecerse para metanol.
+
+5. MEK, MIBK y MIBC
+
+Son tres productos distintos. Tampoco debe confundirse MEK con peróxido de MEK.
+Producto	Qué condiciona su transferencia
+MEK — metiletilcetona	Inflamabilidad, vapores, compatibilidad de sellos y pureza. Identificar expresamente el producto en la documentación y alineación.
+MIBK — metilisobutilcetona	Inflamabilidad y compatibilidad química. La ficha documenta reacción con oxidantes y reductores fuertes y posible formación de peróxidos bajo determinadas condiciones.
+MIBC — metilisobutilcarbinol	Es un alcohol diferente de MIBK: requiere su propia SDS, materiales y aceptación de carga. No deben copiarse las condiciones por similitud de siglas.
+
+
+Para MEK y MIBK, los criterios de bombeo y conexiones deben contemplar un circuito cerrado, materiales compatibles y ausencia de residuos reactivos. www.cdc.gov
+
+Cómo desarrollar la operación:
+1. Confirmar nombre técnico y composición.
+2. Revisar tanque y producto previamente contenido.
+3. Acreditar compatibilidad de mangueras, empaques y sellos.
+4. Acordar presión máxima, caudal y manejo de vapores.
+5. Definir cómo terminar y recuperar el líquido de la línea.
+6. Evitar que el soplado o desplazamiento incorpore sustancias o gases no aceptados.
+6. Aromina 100, Aromina 150, Exxsol y Varsol
+
+Aquí la restricción comienza con la identificación comercial completa. Los nombres de familia no permiten asignar un solo punto de inflamación, viscosidad o clasificación.
+
+ExxonMobil describe numerosos grados Exxsol y distingue esta familia de Varsol y de sus solventes aromáticos. www.exxonmobilchemical.com
+Dato	Por qué restringe el manejo
+Fabricante y grado	Determinan qué producto se está aceptando realmente.
+Punto de inflamación	Permite evaluar el riesgo a la temperatura de operación.
+Viscosidad y temperatura	Condicionan pérdida de presión y capacidad de bombeo.
+Conductividad	Forma parte de la evaluación electrostática cuando corresponda.
+Composición aromática	Influye en exposición, compatibilidad y contaminación cruzada.
+Materiales	El solvente puede afectar sellos o recubrimientos no compatibles.
+Producto previo	Puede alterar color, olor, pureza o especificación.
+
+
+Cómo se cargan o descargan: mediante circuito de líquido compatible y cerrado, con el manejo de vapores definido para el grado y la instalación. El caudal debe calcularse y limitarse para el sistema real.
+
+Restricción: no aprobar “Varsol” o “Aromina” sin SDS del proveedor. Tampoco interpretar “100” o “150” como temperatura autorizada.
+
+7. Alcohol láurico y otros oleoquímicos que solidifican
+
+El problema operativo puede ser la pérdida de fluidez. Deben conocerse el grado, composición y comportamiento térmico antes de establecer temperatura.
+Parte del sistema	Qué debe comprobarse
+Tanque	Capacidad de mantener el producto bombeable sin degradarlo.
+Bomba	Aptitud para viscosidad y temperatura reales.
+Tubería	Aislamiento y calentamiento cuando sean necesarios.
+Válvulas y filtros	Ausencia de puntos fríos capaces de bloquear el paso.
+Manguera o brazo	Compatibilidad térmica y química; calentamiento si el diseño lo requiere.
+Terminación	Drenado o desplazamiento antes de que el remanente solidifique.
+
+
+Restricción importante: que el tanque esté caliente no demuestra que el circuito completo pueda descargar. Un tapón solidificado en válvula, filtro o manguera puede impedir la operación.
+
+La temperatura debe proceder del fabricante y del receptor para ese grado; no debe fijarse una cifra única para todos los alcoholes grasos.
+
+8. Asfalto / betún
+
+Debe distinguirse betún caliente, betún modificado, emulsión y producto diluido. No se transfieren bajo una misma especificación.
+
+Para betún caliente, productores y Eurobitume documentan riesgo de quemadura, presencia posible de H₂S y expulsión violenta al contactar agua. eurobitume.eu
+Aspecto	Restricción desarrollada
+Agua	No recibir material caliente en un sistema con agua atrapada. Revisar tanque, línea y equipos después de lavado o mantenimiento.
+Temperatura	Suficiente para bombeabilidad, dentro del límite del producto y equipo. Sobrecalentar no es una solución aceptable a una línea obstruida.
+Conexiones	Manguera, empaques y accesorios aptos para temperatura y presión de servicio.
+Bombeo	Confirmar capacidad de vencer la pérdida de presión sin superar el límite del circuito.
+Vapores y H₂S	Evaluar exposición y método de medición; no basarse en olor.
+Parada	Establecer cuánto tiempo puede permanecer el producto inmóvil y cómo preservar o recuperar la línea.
+Desconexión	Drenado, despresurización y protección térmica del personal.
+
+
+No iniciar si no se acredita sequedad del sistema receptor, capacidad térmica o disponibilidad de bombeo.
+
+9. Resinas de urea-formaldehído — incluida UF85
+
+La expresión “resina urea-formaldehído” no define una formulación única. Antes de establecer restricciones deben obtenerse SDS y ficha técnica del grado exacto.
+
+Hay que desarrollar, con el fabricante:
+- Viscosidad frente a temperatura.
+- Rango de almacenamiento.
+- Estabilidad y vida útil.
+- pH.
+- Contenido de formaldehído libre.
+- Necesidad de recirculación o agitación.
+- Materiales de tanque y sellos.
+- Método de limpieza.
+- Compatibilidad con agua y contaminantes.
+Cómo condiciona la descarga: una resina más viscosa de lo previsto puede reducir caudal y aumentar presión. Una condición de almacenamiento inadecuada puede alterar el producto y su bombeabilidad.
+
+Restricción: no elevar temperatura, añadir agua ni cambiar pH para facilitar la descarga sin instrucción expresa del fabricante y aceptación del receptor. No encontré una ficha pública suficiente del grado concreto para fijar esos límites numéricos.
+
+10. Sosa cáustica líquida
+
+La concentración debe figurar desde el inicio: una solución al 50 % no debe manejarse con una ficha genérica de sosa sólida.
+
+La sosa reacciona con ácidos y puede atacar metales como aluminio y zinc, generando hidrógeno. www.inchem.org
+Aspecto	Restricción y manejo
+Concentración	Define especificación, comportamiento térmico y condiciones de bombeo.
+Temperatura	Debe impedirse cristalización sin exceder límites de material o producto.
+Materiales	Seleccionarlos para concentración y temperatura; no aceptar aluminio, galvanizados u otros materiales incompatibles.
+Segregación	Evitar conexión accidental con ácidos, incluso a través de líneas comunes o drenajes.
+Carga/descarga	Sistema cerrado, protección contra salpicaduras y vigilancia de conexiones.
+Dilución	Es una operación distinta: requiere procedimiento por el calor que libera.
+Final de descarga	Evitar abrir conexiones con presión o remanentes; recoger drenados.
+
+
+Causas de no aceptación: concentración distinta de la nominada, producto cristalizado, material incompatible o circuito con residuos ácidos.
+
+11. Aceites vegetales y grasas — palma, soya, oleína, estearina y palmiste
+
+Aquí deben resolverse simultáneamente bombeabilidad e inocuidad/calidad.
+
+Codex y FOSFA publican criterios de cargas anteriores, limpieza y transporte. El historial no se limita al tanque: interesa todo el circuito que toca el aceite. www.fao.org
+Producto	Qué debe desarrollarse antes de transferir
+Palma	Grado crudo o refinado, comportamiento térmico y temperatura de transferencia.
+Oleína	Especificación y condiciones de fluidez propias de la fracción.
+Estearina	Mayor atención a solidificación y calentamiento de todo el circuito.
+Palmiste	Mantener identidad y segregación respecto de palma y otras grasas.
+Soya	Protección de calidad, contaminación y condiciones térmicas acordadas.
+Grasas animales	Identidad, grado, requisitos sanitarios y segregación contractual específicos.
+
+
+Cómo se cargan o descargan
+
+El producto se bombea por una línea aceptada para el uso final. Si requiere calentamiento, deben quedar acondicionados tanque, bomba, válvulas y conexión. La temperatura se controla sin generar puntos calientes.
+
+Durante la recepción deben acordarse:
+- Muestreo y criterio de aceptación.
+- Separación de lotes.
+- Manejo de sedimentos.
+- Registro de temperaturas.
+- Recuperación del remanente.
+- Destino del desplazamiento y primeras fracciones.
+Restricciones relevantes
+- No aceptar una línea con olor o residuos incompatibles.
+- No suponer que todo tanque limpio es apto para uso alimentario.
+- Evitar entrada de agua y fugas de serpentines.
+- Revisar materiales que puedan deteriorar el aceite.
+- Confirmar cargas anteriores admitidas por contrato.
+- Comprobar si certificaciones especiales incluyen también el transporte.
+No debe imponerse una sola temperatura de descarga a todos los aceites y grasas.
+
+12. Ácido acético
+
+Deben identificarse concentración y grado. Para ácido acético glacial, el punto de fusión cercano a 16.7 °C hace relevante la solidificación en líneas y válvulas. La ficha internacional también documenta corrosividad e incompatibilidad con bases y oxidantes fuertes. www.inchem.org
+
+Carga y descarga:
+- Utilizar materiales aceptados para concentración y temperatura.
+- Comprobar tanque, línea y juntas.
+- Mantener condiciones térmicas que permitan transferir el grado.
+- Controlar vapores y salpicaduras.
+- Segregar de bases y residuos incompatibles.
+- Acordar drenado y recuperación antes de desconectar.
+Restricción: no intentar vencer una obstrucción por solidificación aumentando presión de bombeo sin diagnóstico y procedimiento autorizado.
+
+13. Acetato de vinilo monómero — VAM
+
+Su restricción decisiva es la estabilidad frente a polimerización. No basta con que sea bombeable.
+
+La guía publicada por Celanese relaciona estabilidad con inhibidor, temperatura, oxígeno y contaminantes. www.celanese.com
+Antes y durante la transferencia	Qué debe resolverse
+Inhibidor	Tipo, concentración, fecha y condiciones de validez.
+Temperatura	Historial y límites autorizados para el lote.
+Atmósfera	Condición compatible con el sistema de inhibición; no imponer nitrógeno puro por rutina.
+Contaminación	Evitar residuos que puedan iniciar o acelerar reacción.
+Espera	Evaluar duración de almacenamiento y retrasos respecto de la estabilidad declarada.
+Circuito	Compatibilidad y ausencia de zonas con retención o acumulación de producto.
+Transferencia	Vigilancia de temperatura y comportamiento anormal conforme al procedimiento.
+
+
+No iniciar o continuar con certificado de inhibición insuficiente, temperatura fuera de condición aceptada o sospecha de reacción. El procedimiento de respuesta debe ser del fabricante y del sistema; no corresponde improvisar adición de inhibidor o cambios de atmósfera.
+
+14. Estireno monómero
+
+También requiere manejo específico por polimerización. La guía sectorial publicada por LyondellBasell trata inhibidor, oxígeno, temperatura y separación de cargas calientes o reactivas. www.lyondellbasell.com
+
+Qué restringe su carga y descarga:
+- Certificación y condición del inhibidor.
+- Temperatura e historial del producto.
+- Tiempo de viaje y almacenamiento.
+- Disponibilidad de control térmico, según diseño.
+- Contaminantes y producto anterior.
+- Calor procedente de equipos o cargas adyacentes.
+- Condiciones de oxígeno necesarias para el inhibidor.
+Conexiones: líquido y, cuando corresponda, control de vapor, con materiales compatibles y manejo de remanentes definido.
+
+Restricción especialmente importante: no aplicar una inertización que invalide el régimen de inhibición aprobado. Tampoco utilizar calentamiento como solución general a problemas de bombeo.
+
+15. Etano criogénico
+
+El etano refrigerado requiere un sistema específico para bajas temperaturas. La ficha internacional identifica inflamabilidad, asfixia por desplazamiento de oxígeno y lesiones por frío. www.inchem.org
+
+Cómo se descarga
+
+En un sistema como el documentado por TQPM, el líquido pasa por brazos y tubería hacia almacenamiento criogénico; existe un circuito separado para vapores. TQPM publica dos brazos principales de descarga y un tercero para vapores de etano. tqpmx.com
+Elemento	Restricción
+Brazos, tubería y válvulas	Aptitud para la temperatura mínima de servicio y cargas mecánicas previstas.
+Manifold	Compatibilidad geométrica, de brida, presión y temperatura.
+Acondicionamiento	Secuencia de preparación y enfriamiento aprobada para evitar daños y operación inestable.
+Vapores	Capacidad y contrapresión compatibles; el caudal de líquido no se define aisladamente.
+Presión	Control en ambos lados de la transferencia.
+Emergencia	Compatibilidad y prueba de la parada de emergencia y de desconexión cuando aplique.
+Drenado	Tratamiento de líquido atrapado y expansión térmica conforme al diseño.
+
+
+Restricción: una instalación para propano, butano o líquidos a temperatura ambiente no queda aceptada para etano criogénico por disponer de tubería metálica.
+
+16. Etileno, propano, butano y VCM
+Producto	Restricción que lo distingue
+Etileno	Requiere condiciones específicas de presión, temperatura y certificación; no equivale a etano.
+Propano / butano	La composición y condición refrigerada o presurizada determinan compatibilidad y manejo de vapor.
+Gas LP mezcla	Debe declararse composición y propiedades; no basta la denominación comercial.
+VCM	Combina inflamabilidad, toxicidad/carcinogenicidad y estabilidad química; necesita sistema y procedimiento especializados.
+
+
+El etileno tiene propiedades distintas del etano y puede generar atmósferas asfixiantes e inflamables. El VCM añade riesgos de polimerización y exposición cancerígena. www.inchem.org
+
+Para cargar o descargar estos gases deben conciliarse:
+- Certificación para el producto.
+- Condición del tanque de origen y receptor.
+- Líquido y vapor.
+- Temperatura y presión.
+- Caudal y capacidad de manejo de vapor.
+- Materiales.
+- Detección.
+- Parada de emergencia.
+- Terminación, drenado y despresurización.
+No es válido asignarles una misma manguera o conexión por pertenecer a la familia de “gases”.
+
+17. Amoniaco anhidro
+
+Es una transferencia especializada por toxicidad y por sus condiciones de almacenamiento. La ficha OIT/OMS documenta ataque a cobre, zinc y otros materiales. inchem.org
+
+Restricciones para el sistema:
+- Materiales, sellos y mangueras expresamente compatibles.
+- Condición refrigerada o presurizada definida.
+- Circuito de líquido y manejo de vapor.
+- Detección apropiada.
+- Control de exposición.
+- Protección y respuesta para fuga.
+- Parada de emergencia.
+- Aislamiento, drenado y desconexión controlados.
+Cómo se descarga: mediante un circuito cerrado compatible, con presión y vapor gestionados de acuerdo con el diseño. No debe presumirse que el receptor puede absorber cualquier caudal.
+
+No iniciar con fugas, detección o comunicaciones inoperantes, materiales sin acreditar o manejo de vapor sin resolver.
+
+18. Ácido fosfórico y ácido sulfúrico
+
+No deben compartir una especificación de materiales por llamarse ambos ácidos.
+Aspecto	Ácido fosfórico	Ácido sulfúrico
+Identificación	Concentración, grado y contenido de sólidos e impurezas.	Concentración, grado y temperatura.
+Bombeo	Viscosidad, sedimentación y eventual necesidad de acondicionamiento.	Compatibilidad y comportamiento del sistema en las condiciones reales.
+Materiales	Selección para composición e impurezas; “inoxidable” no es especificación suficiente.	Selección por concentración y temperatura; no copiar la del fosfórico.
+Agua	Controlar dilución y contaminación.	Evitar entrada accidental y cualquier dilución no diseñada.
+Segregación	Bases y otros incompatibles.	Agua no controlada, bases y demás incompatibles de la SDS.
+Conexiones	Juntas, sellos y contención compatibles.	Igual exigencia, con selección propia del producto.
+
+
+La ficha de ácido fosfórico documenta corrosividad, incompatibilidad con bases y ataque a metales. www.inchem.org
+
+Cómo se cargan o descargan: por circuito cerrado, con muestreo y contención de drenados. Antes de conectar deben comprobarse concentración, temperatura, alineación y tanque receptor.
+
+Restricción: no neutralizar, diluir o mezclar remanentes durante la operación para facilitar su disposición sin un procedimiento diseñado y autorizado.
+
+19. Trigo, maíz y sorgo
+
+Aquí no hay una conexión de líquido. La interfaz es bodega → equipo de extracción → tolva → banda, almacén, camión o ferrocarril.
+Modalidad	Restricciones del producto y equipo
+Almeja y tolva	Limpieza, caída de producto, polvo, pérdida al exterior y capacidad de recepción.
+Descargador mecánico	Compatibilidad con granulometría, alcance y capacidad real.
+Descarga neumática	Aptitud del equipo para el grano, polvo y daños al producto dentro de lo acordado.
+Banda a silo	Segregación, limpieza, capacidad y disponibilidad de silo.
+Entrega directa a transporte	Continuidad de unidades receptoras y protección contra lluvia y contaminación.
+
+
+Restricciones específicas:
+- Humedad y temperatura del lote.
+- Infestación.
+- Fumigante residual.
+- Olor o contaminación por cargas anteriores.
+- Daño por agua.
+- Mezcla de variedades o calidades.
+- Polvo y fuentes de ignición.
+- Condición de los espacios a los que entra personal.
+Fumigación: no se debe autorizar acceso solo porque terminó el tratamiento. Debe verificarse la atmósfera y cumplirse el procedimiento correspondiente; la guía marítima remite a las recomendaciones OMI para fumigación de bodegas. www.gov.uk
+
+20. Pasta de soya y DDG/DDGS
+
+Estas cargas requieren una evaluación distinta a la del grano entero.
+Producto	Restricciones desarrolladas
+Pasta de soya	Método de producción, aceite, humedad, temperatura y clasificación marítima. Evaluar autocalentamiento y condiciones de ventilación según ficha aplicable.
+DDG / DDGS	Identificar producto exacto, aceite, humedad, temperatura y comportamiento de flujo. Puede formar puentes y apelmazarse.
+
+
+Cómo afectan la descarga:
+- Una tolva diseñada para grano de buen flujo puede no vaciarse adecuadamente con DDGS.
+- El apelmazamiento puede reducir rendimiento y exigir un método de recuperación aprobado.
+- No debe enviarse personal a romper puentes dentro de una tolva o silo sin aislamiento y procedimiento.
+- La selección entre silo y bodega debe considerar fluidez y recuperación del producto.
+- No debe cambiarse la ventilación ante calentamiento sin revisar la ficha y el procedimiento aplicable.
+El manual del sector documenta la influencia de humedad y composición en los puentes y apelmazamiento de DDGS. grains.org
+
+Restricción: no aceptar una clasificación o un rendimiento únicamente con el nombre “pasta” o “DDG”; deben respaldarse con la declaración y certificados del lote.
+
+21. Urea, MAP, DAP y mezclas NPK
+Producto	Restricciones principales
+Urea	Humedad, apelmazamiento, polvo, conservación del gránulo y segregación de incompatibles.
+MAP / DAP	Identidad y especificación, humedad, polvo, limpieza y prevención de contaminación.
+NPK	Composición completa: no existe una única clasificación para toda mezcla NPK.
+
+
+La urea no debe tratarse automáticamente como nitrato de amonio. Su ficha documenta polvo irritante e incompatibilidades, aunque no la describe como combustible. www.inchem.org
+
+Cómo se cargan o descargan:
+- A granel: almejas/tolvas, bandas o equipos mecanizados compatibles.
+- En sacos: manipulación que evite rotura, pérdida, humedad y mezcla.
+- Hacia almacén: recepción seca y segregada.
+- Hacia transporte: unidades limpias y protegidas.
+Restricciones: no añadir agua para suprimir polvo sin aceptación técnica; puede afectar calidad y crear apelmazamiento. No asignar a una mezcla NPK la clasificación de otra formulación.
+
+22. Azufre sólido y azufre líquido
+Aspecto	Sólido	Líquido/fundido
+Interfaz	Almejas, tolvas, bandas o sistema sólido.	Bomba, tubería y conexión térmica.
+Problema principal	Polvo, combustibilidad, contaminación y forma del producto.	Temperatura, solidificación, quemaduras y vapores.
+Equipo	Apto para granulometría y control de polvo.	Apto para temperatura y mantenimiento térmico.
+Terminación	Limpieza y recuperación del sólido.	Drenado o conservación térmica para impedir bloqueo.
+
+
+La ficha OIT/OMS documenta explosividad del polvo y gases tóxicos al arder; también distingue el azufre transportado fundido. www.inchem.org
+
+Restricción: una instalación que recibe azufre prilado no queda habilitada para azufre líquido. Tampoco deben tratarse todos los sólidos como una sola presentación: finos, terrones y azufre formado pueden tener condiciones distintas.
+
+23. Cemento, clínker, roca fosfórica, barita y coque de petróleo
+Producto	Cómo se transfiere	Restricción decisiva
+Cemento	Neumático o mecánico especializado, según instalación.	Sequedad, polvo, presión del sistema y capacidad de filtración del receptor.
+Clínker	Equipos para sólidos granulares.	Abrasión, temperatura, granulometría y protección de calidad.
+Roca fosfórica	Almeja/tolva/banda u otro sistema compatible.	Ficha del lote, humedad, polvo y capacidad por densidad.
+Barita	Sistema de sólidos o polvo según presentación.	Densidad aparente, tamaño de partícula, polvo y capacidad del equipo.
+Coque de petróleo	Sistema de sólidos.	Grado, temperatura, polvo, ficha y riesgo de autocalentamiento cuando corresponda.
+
+
+Para cemento y clínker, las fichas del fabricante obligan a considerar exposición al polvo y efectos del contacto con humedad. www.cemex.es
+
+Conexión neumática de cemento: deben definirse diámetro, presión, caudal de aire, longitud y desnivel, capacidad del silo y filtración. La presión que puede entregar el buque no es necesariamente la que puede recibir el sistema.
+
+En minerales y coque, deben comprobarse ficha de carga y equipos antes de prometer rendimiento. No todas las cargas admiten aspersión de agua ni el mismo régimen de almacenamiento.
+
+24. Qué debe contener la ficha de carga/descarga de cada producto
+
+Para que la información sirva en una operación real, cada producto necesita estos campos, con valores del proveedor, buque y receptor:
+Grupo	Información que debe quedar cerrada
+Identidad	Nombre técnico, grado, concentración, SDS y especificación del lote.
+Estado	Líquido, gas, fundido, sólido, polvo, gránulo o solución.
+Compatibilidad	Tanque, recubrimiento, línea, bomba, manguera, junta y sellos.
+Calidad	Humedad, contaminación admisible, producto previo y limpieza.
+Temperatura	Mínima/máxima de recepción, bombeo y almacenamiento.
+Conexión	Líquido/vapor, diámetro, brida, presión y disposición física.
+Transferencia	Caudales inicial, máximo y final; capacidad receptora.
+Estabilidad	Inhibidor, oxígeno, tiempo, agitación o recirculación cuando correspondan.
+Terminación	Drenado, desplazamiento, remanentes, despresurización y desconexión.
+Rechazo/parada	Condiciones concretas que impiden iniciar o continuar.

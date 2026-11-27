@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Anchor, ArrowUpRight, SlidersHorizontal } from 'lucide-react';
+import { Anchor, ArrowUpRight, Lock } from 'lucide-react';
 import { formatDraftMAndFt, REGION_LABELS, translatePortStatus } from '../utils/i18n';
+import { formatShareExpirationDate, type ShareSectionKey } from '../utils/shareLink';
 import type { Language, PortArea, PortProfile, PortRegion, WeatherStatus } from '../types/port';
 
 interface HeroSectionProps {
@@ -9,10 +10,11 @@ interface HeroSectionProps {
   areas: PortArea[];
   weather?: WeatherStatus;
   lang: Language;
+  isExclusiveMode?: boolean;
+  exclusiveExpiresAtMs?: number;
+  allowedSections?: ShareSectionKey[];
   onSelectPort: (portId: string) => void;
-  onToggleLang: (lang: Language) => void;
-  onOpenContentManager: () => void;
-  onOpenShareCenter: () => void;
+  onOpenPreArrivalGenerator?: () => void;
 }
 
 const REGION_ORDER: PortRegion[] = [
@@ -29,12 +31,16 @@ export function HeroSection({
   areas,
   weather,
   lang,
+  isExclusiveMode = false,
+  exclusiveExpiresAtMs,
+  allowedSections,
   onSelectPort,
-  onToggleLang,
-  onOpenContentManager,
-  onOpenShareCenter,
+  onOpenPreArrivalGenerator,
 }: HeroSectionProps) {
   const [imgError, setImgError] = useState(false);
+
+  const canShow = (key: ShareSectionKey) =>
+    !allowedSections || allowedSections.includes(key);
 
   const portAreas = areas.filter((a) => a.portId === port.id);
   const maxOperationalDraft =
@@ -44,7 +50,7 @@ export function HeroSection({
 
   return (
     <section id="top" className="bg-[#060a13] text-white">
-      <div className="relative min-h-[560px] lg:min-h-[620px] flex items-end overflow-hidden">
+      <div className="relative min-h-[540px] lg:min-h-[600px] flex items-end overflow-hidden">
         {!imgError ? (
           <img
             src={port.heroImageUrl}
@@ -79,21 +85,25 @@ export function HeroSection({
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <a
-              href="#terminals"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 text-[15px] font-medium text-[#060a13] bg-white hover:bg-[#f5f5f7] rounded-lg transition-colors duration-150 whitespace-nowrap"
-            >
-              {lang === 'es' ? 'Explorar terminales y muelles' : 'Explore terminals & berths'}
-              <ArrowUpRight className="w-4 h-4" />
-            </a>
+            {canShow('terminals') && (
+              <a
+                href="#terminals"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-[15px] font-medium text-[#060a13] bg-white hover:bg-[#f5f5f7] rounded-lg transition-colors duration-150 whitespace-nowrap"
+              >
+                {lang === 'es' ? 'Explorar terminales y muelles' : 'Explore terminals & berths'}
+                <ArrowUpRight className="w-4 h-4" />
+              </a>
+            )}
 
-            <button
-              type="button"
-              onClick={onOpenShareCenter}
-              className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-medium text-white border border-white/25 hover:border-white/50 hover:bg-white/10 rounded-lg transition-colors duration-150 whitespace-nowrap"
-            >
-              {lang === 'es' ? 'Generar Sedna / Ficha PDF' : 'Generate Sedna / PDF Brief'}
-            </button>
+            {onOpenPreArrivalGenerator && (
+              <button
+                type="button"
+                onClick={onOpenPreArrivalGenerator}
+                className="inline-flex items-center justify-center px-6 py-3 text-[15px] font-medium text-white bg-[#0066cc] hover:bg-[#0052a3] rounded-lg transition-colors duration-150 whitespace-nowrap"
+              >
+                {lang === 'es' ? 'Información Pre-Arribo' : 'Pre-Arrival Information'}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -149,77 +159,69 @@ export function HeroSection({
         </div>
       </div>
 
-      {/* Clean Workspace Control Bar below hero fold */}
+      {/* Clean Port Context Bar below hero fold */}
       <div className="bg-[#f5f5f7] text-[#1d1d1f] border-b border-[#d2d2d7]/70">
         <div className="max-w-[1200px] mx-auto px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <label htmlFor="hero-port-select" className="text-[12px] font-medium text-[#6e6e73]">
-              {lang === 'es'
-                ? `Puerto activo (${allPorts.length}):`
-                : `Active port (${allPorts.length}):`}
-            </label>
-            <select
-              id="hero-port-select"
-              value={port.id}
-              onChange={(e) => onSelectPort(e.target.value)}
-              className="max-w-full px-3 py-1.5 text-[13px] font-medium text-[#1d1d1f] bg-white border border-[#d2d2d7] rounded-lg focus:outline-2 focus:outline-[#0066cc]"
-            >
-              {REGION_ORDER.map((region) => {
-                const regionPorts = allPorts.filter((p) => p.region === region);
-                if (regionPorts.length === 0) return null;
-                return (
-                  <optgroup key={region} label={REGION_LABELS[region][lang]}>
-                    {regionPorts.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name.replace('Puerto de ', '')} ({p.shortCode} · {p.unLocode})
-                      </option>
-                    ))}
-                  </optgroup>
-                );
-              })}
-            </select>
-            <a
-              href="#port-status"
-              className="text-[13px] font-medium text-[#0066cc] hover:underline whitespace-nowrap"
-            >
-              {lang === 'es' ? 'Ver clima e histórico' : 'Weather & status log'}
-            </a>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div
-              className="inline-flex items-center p-1 bg-white rounded-lg border border-[#d2d2d7]"
-              role="group"
-              aria-label={lang === 'es' ? 'Selector de idioma' : 'Language selector'}
-            >
-              <button
-                type="button"
-                onClick={() => onToggleLang('es')}
-                className={`px-2.5 py-1 text-[12px] font-medium rounded-md transition-colors ${
-                  lang === 'es' ? 'bg-[#0066cc] text-white' : 'text-[#424245] hover:text-[#1d1d1f]'
-                }`}
+          {!isExclusiveMode ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <label htmlFor="hero-port-select" className="text-[12px] font-medium text-[#6e6e73]">
+                {lang === 'es'
+                  ? `Puerto activo (${allPorts.length}):`
+                  : `Active port (${allPorts.length}):`}
+              </label>
+              <select
+                id="hero-port-select"
+                value={port.id}
+                onChange={(e) => onSelectPort(e.target.value)}
+                className="max-w-full px-3 py-1.5 text-[13px] font-medium text-[#1d1d1f] bg-white border border-[#d2d2d7] rounded-lg focus:outline-2 focus:outline-[#0066cc]"
               >
-                ES
-              </button>
-              <button
-                type="button"
-                onClick={() => onToggleLang('en')}
-                className={`px-2.5 py-1 text-[12px] font-medium rounded-md transition-colors ${
-                  lang === 'en' ? 'bg-[#0066cc] text-white' : 'text-[#424245] hover:text-[#1d1d1f]'
-                }`}
+                {REGION_ORDER.map((region) => {
+                  const regionPorts = allPorts.filter((p) => p.region === region);
+                  if (regionPorts.length === 0) return null;
+                  return (
+                    <optgroup key={region} label={REGION_LABELS[region][lang]}>
+                      {regionPorts.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name.replace('Puerto de ', '')} ({p.shortCode} · {p.unLocode})
+                        </option>
+                      ))}
+                    </optgroup>
+                  );
+                })}
+              </select>
+              <a
+                href="#port-status"
+                className="text-[13px] font-medium text-[#0066cc] hover:underline whitespace-nowrap"
               >
-                EN
-              </button>
+                {lang === 'es' ? 'Ver clima e histórico' : 'Weather & status log'}
+              </a>
             </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-3 text-[13px]">
+              <span className="inline-flex items-center gap-1.5 font-semibold text-[#1d1d1f]">
+                <Lock className="w-3.5 h-3.5 text-[#0066cc]" />
+                {lang === 'es' ? 'Vista exclusiva autorizada:' : 'Authorized Exclusive View:'}{' '}
+                {port.name} ({port.unLocode})
+              </span>
+              {exclusiveExpiresAtMs && (
+                <span className="text-[12px] text-[#6e6e73] font-mono tabular-nums">
+                  {lang === 'es' ? 'Vigente hasta' : 'Valid until'}{' '}
+                  {formatShareExpirationDate(exclusiveExpiresAtMs, lang)}
+                </span>
+              )}
+            </div>
+          )}
 
-            <button
-              type="button"
-              onClick={onOpenContentManager}
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-[13px] font-medium text-[#1d1d1f] bg-white hover:bg-[#ebebef] border border-[#d2d2d7] rounded-lg transition-colors whitespace-nowrap"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              Content Manager
-            </button>
+          <div className="flex items-center gap-4 text-[12.5px] text-[#6e6e73]">
+            <span>{port.authority}</span>
+            {canShow('authorities') && (
+              <a
+                href="#authorities-crew"
+                className="font-medium text-[#0066cc] hover:underline whitespace-nowrap"
+              >
+                {lang === 'es' ? 'Autoridades y Migración' : 'Authorities & Immigration'}
+              </a>
+            )}
           </div>
         </div>
       </div>

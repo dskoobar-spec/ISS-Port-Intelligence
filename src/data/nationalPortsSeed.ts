@@ -9,8 +9,10 @@ import type {
   PortRegion,
   PortRestriction,
   PortStatusEvent,
+  StorageSummary,
   TariffItem,
   Terminal,
+  TerminalCommercialProfile,
   VesselLineupEntry,
   WeatherStatus,
 } from '../types/port';
@@ -61,6 +63,8 @@ interface TerminalSpec {
   mapY: number;
   imageType: 'hero' | 'pajaritos' | 'recintoSur' | 'channel';
   cargoGroups: CargoGroup[];
+  storageSummary?: StorageSummary;
+  commercialProfile?: TerminalCommercialProfile;
   procedures: string[];
   restrictionsSummary: string;
   berths: BerthSpec[];
@@ -257,6 +261,67 @@ export function buildAdditionalPortsData(images: {
           mapY: 36,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores', 'Carga Proyecto'],
+          storageSummary: {
+            coveredSqm: 14500,
+            openYardSqm: 85000,
+            containerYardSqm: 310000,
+            warehousesBreakdown:
+              'Patio de contenedores FCL/Reefer (310,000 m²), almacén fiscalizado cubierto (14,500 m²) y patios de acero laminado y carga proyecto (85,000 m²) con 4 vías ferroviarias internas.',
+            warehousesBreakdownEn:
+              '310,000 m² FCL/Reefer container yard, 14,500 m² bonded covered warehouse & 85,000 m² heavy steel/project cargo laydown with 4 internal rail spurs.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal Líder de Contenedores, Acero Laminado y Carga Proyecto del Golfo Norte',
+            positioningHeadlineEn:
+              'Northern Gulf’s Flagship Container, Steel Coil & Heavy Project Cargo Terminal',
+            address: 'Puerto Industrial de Altamira, Blvd. de los Ríos Km 4.2, Altamira, Tamaulipas',
+            customsRegime: 'Recinto Fiscalizado Autorizado · Aduana de Altamira (Despacho Electrónico VUCEM e Intermodal)',
+            customsRegimeEn: 'Authorized Bonded Terminal · Altamira Customs (VUCEM Electronic & In-Bond Rail Clearance)',
+            commercialServices: [
+              'Estiba/desestiba de contenedores FCL/LCL, carga refrigerada (+700 tomas reefer) y mercancías peligrosas IMO',
+              'Descarga y consolidación de bobinas de acero automotriz, placas y perfiles estructurales bajo almacén cubierto',
+              'Izaje de piezas sobredimensionadas y maquinaria industrial para corredores Monterrey, Saltillo y Bajío',
+              'Despacho ferroviario unitario KCSM/CPKC y Ferromex directo dentro de terminal',
+            ],
+            commercialServicesEn: [
+              'Container stevedoring (FCL/LCL, 700+ reefer plugs, IMO dangerous cargo)',
+              'Automotive steel coil, plate & structural steel handling with covered humidity-protected sheds',
+              'Heavy-lift project cargo rigging bound for Monterrey, Saltillo & Bajío manufacturing corridors',
+              'On-dock unit train loading via CPKC (KCSM) and Ferromex intermodal spurs',
+            ],
+            infrastructureHighlights: [
+              '600 m de muelle lineal continuo a 12.19 m (40 ft) de calado operativo',
+              '4 grúas pórtico Ship-to-Shore Post-Panamax + 2 grúas móviles MHC de alto tonelaje',
+              'Patio intermodal de 4 espuelas ferroviarias y básculas certificadas de 100 ton',
+            ],
+            infrastructureHighlightsEn: [
+              '600 m continuous quay rated at 12.19 m (40 ft) official draft',
+              '4 Post-Panamax Ship-to-Shore gantries + 2 heavy-lift mobile harbor cranes (MHC)',
+              '4-track on-dock intermodal railyard & certified 100 MT weighbridges',
+            ],
+            vesselTypesServed: [
+              'Portacontenedores Panamax y Post-Panamax',
+              'Buques Siderúrgicos / Carga General y Heavy-Lift Multipropósito',
+            ],
+            vesselTypesServedEn: [
+              'Panamax & Post-Panamax Container Vessels',
+              'Steel Breakbulk & Heavy-Lift Multipurpose Ships',
+            ],
+            connectivity:
+              'Acceso ferroviario doble CPKC y Ferromex directo al hub industrial Monterrey–Saltillo–San Luis Potosí y corredor carretero Tampico–Mante / México 80.',
+            connectivityEn:
+              'Dual CPKC & Ferromex rail access directly to Monterrey–Saltillo–SLP manufacturing hubs plus Federal Hwy 80.',
+            operationalAdvantages: [
+              'Reserva territorial industrial de +9,500 ha adyacente al recinto para parques industriales y centros de distribución.',
+              'Alta productividad STS (28–35 mov/h) sin congestión urbana en accesos carreteros.',
+            ],
+            operationalAdvantagesEn: [
+              'Adjoins 9,500+ ha industrial park reserve with zero urban traffic bottlenecks.',
+              'High 28–35 moves/hr STS crane productivity and seamless rail dispatch.',
+            ],
+            certifications: ['ISPS / PBIP', 'C-TPAT / OEA', 'ISO 9001 / 14001'],
+          },
           procedures: ['Envío EDI BAPLIE 24 h previo; VUMCE 48 h pre-ETA.'],
           restrictionsSummary: 'Calado op. 12.19 m (40 ft); muelle lineal de 600 m.',
           berths: [
@@ -291,6 +356,67 @@ export function buildAdditionalPortsData(images: {
           mapY: 45,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores', 'Granel Mineral', 'Granel Agrícola'],
+          storageSummary: {
+            coveredSqm: 24000,
+            openYardSqm: 195000,
+            containerYardSqm: 140000,
+            warehousesBreakdown:
+              'Patios automotrices RoRo, bodegas especializadas de rollos de acero (Steelterminal), silos/tolvas ecológicas CTS para coque y minerales, y patio de contenedores IPM.',
+            warehousesBreakdownEn:
+              'RoRo automotive compounds, Steelterminal covered steel-coil warehouses, CTS enclosed mineral/petcoke bulk hoppers & IPM container yard.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Complejo Multipropósito de Acero, RoRo Automotriz y Granel Mineral del Noreste',
+            positioningHeadlineEn:
+              'Northeastern Mexico’s Multipurpose Automotive RoRo, Steel & Mineral Bulk Complex',
+            address: 'Dársena Sur, Puerto Industrial de Altamira, Tamaulipas',
+            customsRegime: 'Recintos Fiscalizados Especializados (IPM · CTS · Steelterminal) · Aduana de Altamira',
+            customsRegimeEn: 'Specialized Bonded Terminals (IPM · CTS · Steelterminal) · Altamira Customs',
+            commercialServices: [
+              'Operación RoRo automotriz de importación/exportación hacia plantas del Bajío y Noreste',
+              'Descarga mecanizada con tolvas ecológicas de coque de petróleo, mineral de hierro, fluorita, clinker y grano',
+              'Almacenaje climatizado y manejo magnético de bobinas de acero automotriz en Steelterminal',
+              'Consolidación ferroviaria y despacho intermodal de contenedores en IPM',
+            ],
+            commercialServicesEn: [
+              'RoRo automotive vehicle import/export supporting Bajío & Northern OEM assembly plants',
+              'Enclosed ecological hopper stevedoring for petcoke, iron ore, fluorspar, clinker & grain',
+              'Climate-controlled automotive steel coil storage & crane handling at Steelterminal',
+              'Container & unit-train rail dispatch via IPM intermodal tracks',
+            ],
+            infrastructureHighlights: [
+              '750 m continuos de atraque a 11.89–12.19 m de calado operativo',
+              'Grúas móviles MHC de 100 ton, tolvas ecológicas antipolvo y doble espuela ferroviaria',
+              'Básculas electrónicas de 100 ton y patios pavimentados para vehículos RoRo',
+            ],
+            infrastructureHighlightsEn: [
+              '750 m continuous quay rated at 11.89–12.19 m operational draft',
+              '100T MHC cranes, dust-controlled ecological bulk hoppers & dual rail spurs',
+              '100T electronic weighbridges & dedicated paved automotive staging yards',
+            ],
+            vesselTypesServed: [
+              'Buques Pure Car Carriers (PCTC / RoRo)',
+              'Graneleros Handysize / Supramax y Buques Siderúrgicos / Contenedores',
+            ],
+            vesselTypesServedEn: [
+              'Pure Car & Truck Carriers (PCTC / RoRo)',
+              'Handysize / Supramax Bulk Carriers & Steel/Container Ships',
+            ],
+            connectivity:
+              'Doble espuela ferroviaria conectada a CPKC/Ferromex hacia Monterrey, Saltillo y San Luis Potosí; enlace directo a Carretera Tampico–Mante.',
+            connectivityEn:
+              'Dual rail spur linking CPKC/Ferromex to Monterrey, Saltillo & SLP industrial corridors plus Federal Hwy 80.',
+            operationalAdvantages: [
+              'Integración en un mismo frente de carga seca, siderúrgica automotriz y exportación RoRo.',
+              'Altos rendimientos en descarga de coque/mineral (5,000–8,000 MT/día) y 250 autos/hora.',
+            ],
+            operationalAdvantagesEn: [
+              'Co-located automotive steel logistics, RoRo handling & high-rate dry bulk stevedoring.',
+              'Up to 8,000 MT/day dry bulk throughput and 250 units/hr RoRo productivity.',
+            ],
+            certifications: ['ISPS / PBIP', 'ISO 9001 / 14001', 'Industria Limpia PROFEPA'],
+          },
           procedures: ['Inspección previa de bodegas y plan de estiba 48 h antes.'],
           restrictionsSummary: 'Calado op. 11.89 – 12.19 m según posición asignada.',
           berths: [
@@ -325,6 +451,67 @@ export function buildAdditionalPortsData(images: {
           mapY: 38,
           imageType: 'pajaritos',
           cargoGroups: ['Petroquímica y Líquidos', 'Hidrocarburos y Gas'],
+          storageSummary: {
+            coveredSqm: 2500,
+            openYardSqm: 15000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Parques de tanques químicos en acero inoxidable y carbón de Vopak, TEPEAL y OTM Mexplus con esferas presurizadas de VCM/butadieno y líneas calefaccionadas/nitrógeno.',
+            warehousesBreakdownEn:
+              'Vopak, TEPEAL & OTM stainless/carbon chemical tank farms plus pressurized VCM spheres and nitrogen-blanketed pipelines.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Cluster Petroquímico de Fluidos conectado por Ducto al Principal Corredor Químico del Noreste',
+            positioningHeadlineEn:
+              'Pipeline-Integrated Chemical & Clean Fuels Hub Serving the Altamira Petrochemical Corridor',
+            address: 'Zona Petroquímica Norte, Puerto Industrial de Altamira, Tamaulipas',
+            customsRegime: 'Terminales Marítimas Especializadas de Líquidos · Recinto Fiscalizado / IMMEX',
+            customsRegimeEn: 'Specialized Bonded Liquid & Chemical Terminals · Altamira Customs / IMMEX',
+            commercialServices: [
+              'Almacenamiento y trasiego en tanques especializados de paraxileno, estireno, ácido acético, VCM, glicoles y sosa cáustica',
+              'Importación de destilados limpios (gasolina, diésel UBA, turbosina) en OTM Mexplus',
+              'Transferencia directa por ducto hacia complejos industriales Indorama, Alpek, Sabic, BASF y Mexichem/Orbia',
+              'Servicios de calentamiento de producto, inertización con nitrógeno y despacho en autotanque y carrotanque',
+            ],
+            commercialServicesEn: [
+              'Specialized chemical storage & ship-to-tank transfers for paraxylene, styrene, acetic acid, VCM, glycols & caustic soda',
+              'Clean refined fuels import (gasoline, ULSD, jet A-1) via OTM Mexplus rail/truck racks',
+              'Direct pipeline delivery into Indorama, Alpek, Sabic, BASF & Orbia industrial plants',
+              'Product heating, nitrogen blanketing, vapor recovery & railcar/tank-truck loading racks',
+            ],
+            infrastructureHighlights: [
+              '420 m de frente en muelles líquidos a 11.89 m de calado operativo',
+              'Brazos articulados Chiksan en acero inoxidable, líneas dedicadas sin contaminación cruzada y sistemas ESD',
+              'Almacenamiento presurizado y atmosférico conectado a poliductos industriales',
+            ],
+            infrastructureHighlightsEn: [
+              '420 m liquid jetty spread rated at 11.89 m operational draft',
+              'Stainless Chiksan marine arms, dedicated segregated lines & ESD trips',
+              'Atmospheric & pressurized tank farms directly piped into chemical plants',
+            ],
+            vesselTypesServed: [
+              'Buques Quimiqueros Parcel Tankers IMO I / II / III',
+              'Buques Gaseros Petroquímicos (VCM / Butadieno) y Producto MR1/MR2',
+            ],
+            vesselTypesServedEn: [
+              'IMO Type I / II / III Parcel Chemical Tankers',
+              'Petrochemical Gas Carriers (VCM/Butadiene) & MR1/MR2 Product Tankers',
+            ],
+            connectivity:
+              'Red de ductos de proceso hacia el Corredor Petroquímico Altamira–Tampico y espuelas para carrotanques químicos KCSM/Ferromex.',
+            connectivityEn:
+              'Dedicated chemical pipeline corridor into Altamira plants plus KCSM/Ferromex tank-car rail sidings.',
+            operationalAdvantages: [
+              'Cero fletes terrestres intermedios para materias primas petroquímicas gracias a ductos directos a planta.',
+              'Altos estándares CDI / OCIMF SIRE e ISGOTT con líneas totalmente segregadas.',
+            ],
+            operationalAdvantagesEn: [
+              'Direct pier-to-plant pipelines eliminate intermediate chemical trucking.',
+              'Segregated stainless piping meeting strict CDI / OCIMF SIRE & ISGOTT standards.',
+            ],
+            certifications: ['CDI / SIRE', 'ISGOTT', 'ISPS / PBIP', 'ISO 14001 / 45001'],
+          },
           procedures: ['ISGOTT Ship/Shore Checklist y vetting CDI/SIRE obligatorio.'],
           restrictionsSummary: 'Máquinas en standby 24/7; prohibido bunkering simultáneo.',
           berths: [
@@ -359,6 +546,65 @@ export function buildAdditionalPortsData(images: {
           mapY: 66,
           imageType: 'channel',
           cargoGroups: ['Hidrocarburos y Gas', 'Carga Proyecto'],
+          storageSummary: {
+            coveredSqm: 18000,
+            openYardSqm: 260000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Tanques criogénicos TLA (300,000 m³ de GNL / regasificación 500–700 MMPCD) + patio de fabricación pesada J. Ray McDermott (26 ha con naves cubiertas y muelle heavy-lift).',
+            warehousesBreakdownEn:
+              'TLA cryogenic LNG tanks (300,000 m³) + 26 ha J. Ray McDermott heavy offshore jacket fabrication yard & load-out quay.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Hub Criogénico de GNL del Golfo de México y Patio de Fabricación Pesada Costa Afuera',
+            positioningHeadlineEn:
+              'Gulf of Mexico Cryogenic LNG Regasification Terminal & Heavy Offshore Structure Fabrication Yard',
+            address: 'Zona Energética y Offshore, Puerto de Altamira, Tamaulipas',
+            customsRegime: 'Recinto Portuario Energético / Régimen Especial GNL y Fabricación Offshore (IMMEX)',
+            customsRegimeEn: 'Dedicated LNG Energy Precinct & Offshore Fabrication IMMEX Customs Facility',
+            commercialServices: [
+              'Recepción, almacenamiento criogénico (-162 °C) y regasificación de Gas Natural Licuado hasta 10,000 m³/h en TLA',
+              'Inyección directa de gas natural a red troncal SISTRANGAS / CFE para generación eléctrica e industria del noreste',
+              'Fabricación, ensamble y embarque (load-out) de jackets, cubiertas de plataformas y módulos offshore en patio McDermott',
+            ],
+            commercialServicesEn: [
+              'Cryogenic LNG (-162 °C) carrier discharge up to 10,000 m³/hr, storage & pipeline send-out at TLA',
+              'Direct natural gas supply into SISTRANGAS / CFE national trunk network',
+              'Heavy offshore platform jacket, topside module fabrication & skid/barge load-out at McDermott yard',
+            ],
+            infrastructureHighlights: [
+              'Muelle profundo a -14.5 m (12.50 m calado op.) apto para metaneros Q-Flex / convencionales hasta 295 m LOA',
+              '4 brazos criogénicos de 16", 2 tanques de almacenamiento total 300,000 m³ y monitores de espuma/cortina de agua',
+              'Muelle heavy-lift reforzado para barcazas lanzadoras (launch barges) de estructuras de gran tonelaje',
+            ],
+            infrastructureHighlightsEn: [
+              '-14.5 m deep-water berth (12.50 m op. draft) accommodating LNG carriers up to 295 m LOA',
+              '4 x 16" cryogenic arms, 300,000 m³ LNG tank farm & deluge fire protection',
+              'Reinforced heavy-lift load-out quay for massive offshore launch barges',
+            ],
+            vesselTypesServed: [
+              'Buques Metaneros Criogénicos (LNG Carriers hasta 155,000–215,000 m³)',
+              'Barcazas Oceánicas Heavy-Lift, Launch Barges y Buques de Construcción Submarina',
+            ],
+            vesselTypesServedEn: [
+              'Cryogenic LNG Carriers (155,000–215,000 m³)',
+              'Heavy-Lift Launch Barges & Offshore Construction Vessels',
+            ],
+            connectivity:
+              'Conexión directa al Sistema Nacional de Gasoductos (SISTRANGAS / CFE) y acceso marítimo inmediato al Golfo de México.',
+            connectivityEn:
+              'Direct interconnection to SISTRANGAS / CFE gas transmission grid and unrestricted Gulf of Mexico offshore access.',
+            operationalAdvantages: [
+              'Infraestructura criogénica SIGTTO con tasa de descarga hasta 10,000 m³/h y alta disponibilidad de gasoducto.',
+              'Único patio en Golfo norte con capacidad de load-out para súper estructuras costa afuera.',
+            ],
+            operationalAdvantagesEn: [
+              'SIGTTO-compliant 10,000 m³/hr LNG terminal with direct national grid tie-in.',
+              'Major Northern Gulf fabrication yard built for mega offshore topside & jacket load-outs.',
+            ],
+            certifications: ['SIGTTO / IGC', 'ISPS / PBIP', 'ASME / AWS (Fabricación Offshore)'],
+          },
           procedures: ['Escolta obligatoria de 3 remolcadores; zona de exclusión marítima de 500 m.'],
           restrictionsSummary: 'Atraque diurno exclusivo para buques GNL.',
           berths: [
@@ -525,6 +771,67 @@ export function buildAdditionalPortsData(images: {
           mapY: 46,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores', 'Granel Mineral', 'Carga Proyecto'],
+          storageSummary: {
+            coveredSqm: 60000,
+            openYardSqm: 125000,
+            containerYardSqm: 38000,
+            warehousesBreakdown:
+              'Más de 60,000 m² de bodegas fiscales cubiertas a pie de muelle en las Posiciones 1–10 + 125,000 m² de patios pavimentados y espuela ferroviaria directa.',
+            warehousesBreakdownEn:
+              'Over 60,000 m² dockside bonded warehouses across Berths 1–10 + 125,000 m² paved laydown yards with direct on-dock rail.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Recinto Público Fluvial con 10 Posiciones y Red Global hacia Más de 100 Países',
+            positioningHeadlineEn:
+              '10-Berth Pánuco River Fiscal Hub Connecting 100+ Countries via Steel, Pipe & Project Logistics',
+            address: 'Recinto Fiscal Portuario s/n, Zona Centro, Tampico, Tamaulipas',
+            customsRegime: 'Recinto Fiscal Portuario ASIPONA / Cesionarios CICE · Aduana de Tampico',
+            customsRegimeEn: 'ASIPONA / CICE Fiscal Port Enclosure · Tampico Customs',
+            commercialServices: [
+              'Carga y descarga de acero laminado, tubería petrolera OCTG, madera, concentrados minerales, coque, azúcar y fertilizantes',
+              'Almacenaje bajo techo en +60,000 m² de bodegas fiscales a primera línea de muelle',
+              'Manejo de piezas industriales sobredimensionadas y contenedores FCL con equipo de alto tonelaje',
+              'Consolidación directa en vagón ferroviario sobre vía paralela a muelles 1–10',
+            ],
+            commercialServicesEn: [
+              'Stevedoring of rolled steel, OCTG oilfield pipe, timber, mineral concentrates, petcoke, sugar & fertilizers',
+              'First-line covered bonded warehousing across 60,000+ m² directly behind berths 1–10',
+              'Heavy industrial project cargo lifts & container handling via high-capacity cranes/forklifts',
+              'Direct ship-to-railcar loading along quay-side railway tracks',
+            ],
+            infrastructureHighlights: [
+              '1,949 m continuos de muelle entre las Posiciones 1 y 10 (de 2,149 m totales con T11)',
+              '60,000+ m² de almacenes cubiertos + patios pavimentados para tubería y acero',
+              'Espuelas ferroviarias directas a muelle y enlaces a más de 100 países',
+            ],
+            infrastructureHighlightsEn: [
+              '1,949 m of continuous quay across Berths 1–10 (2,149 m total including Berth 11)',
+              '60,000+ m² covered transit sheds + heavy steel/pipe yards',
+              'Direct dockside rail sidings & global breakbulk trade links to 100+ nations',
+            ],
+            vesselTypesServed: [
+              'Buques de Carga General / Multipropósito / Heavy-Lift',
+              'Graneleros Handysize y Handy-Max',
+            ],
+            vesselTypesServedEn: [
+              'General Cargo / Breakbulk / Heavy-Lift Vessels',
+              'Handysize & Handymax Dry Bulk Carriers',
+            ],
+            connectivity:
+              'Vías ferroviarias on-dock conectadas a líneas nacionales hacia San Luis Potosí, Monterrey y Centro; acceso vial urbano controlado por Av. Hidalgo / Carretera 180.',
+            connectivityEn:
+              'On-dock rail network linking SLP, Monterrey & Central Mexico; highway dispatch via Fed. Hwy 180.',
+            operationalAdvantages: [
+              'Amplia capacidad de bodegas cubiertas inmediatas al muelle para carga sensible a humedad (acero, azúcar, papel).',
+              'Flexibilidad de atraque en 10 posiciones continuas con baja estadía en fondeadero.',
+            ],
+            operationalAdvantagesEn: [
+              'Massive dockside covered warehouse footprint protecting moisture-sensitive steel & bagged cargo.',
+              '10 continuous public berths providing high berth availability for breakbulk tonnage.',
+            ],
+            certifications: ['ISPS / PBIP', 'ISO 9001'],
+          },
           procedures: ['Validar peso por eje en muelle antes de maniobras heavy-lift.'],
           restrictionsSummary: 'Calado op. 9.14 – 9.45 m (30–31 ft) en agua dulce.',
           berths: [
@@ -574,6 +881,47 @@ export function buildAdditionalPortsData(images: {
           mapY: 42,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores', 'Carga Proyecto'],
+          storageSummary: {
+            coveredSqm: 6500,
+            openYardSqm: 42000,
+            containerYardSqm: 15000,
+            warehousesBreakdown:
+              'Patio fiscal exclusivo T11 (42,000 m² pavimentados + 6,500 m² bodega techada) en el extremo este del Recinto Fiscal Tampico.',
+            warehousesBreakdownEn:
+              'Exclusive T11 bonded yard (42,000 m² paved + 6,500 m² covered warehouse) on the eastern flank of Tampico Fiscal Quay.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal Privada Cesionada en Posición 11 para Acero, Carga Proyecto y Logística Offshore',
+            positioningHeadlineEn:
+              'Dedicated Berth 11 Concessionaire Specializing in Steel, Project Cargo & Offshore Support',
+            address: 'Tramo Este Recinto Fiscal, Posición 11, Tampico, Tamaulipas',
+            customsRegime: 'Recinto Fiscalizado T11 · Aduana de Tampico',
+            customsRegimeEn: 'Bonded Terminal Concession T11 · Tampico Customs',
+            commercialServices: [
+              'Operación privada exclusiva de placa/rollo de acero, perfiles metálicos, equipos petroleros y contenedores',
+              'Almacenaje fiscalizado, trincado de carga proyecto y soporte logístico a embarcaciones offshore',
+            ],
+            commercialServicesEn: [
+              'Dedicated stevedoring for steel plates/coils, structural beams, oilfield gear & containers',
+              'Bonded storage, project lashing/securing & offshore supply vessel turnarounds',
+            ],
+            infrastructureHighlights: [
+              '200 m de muelle dedicado a 9.45 m de calado operativo',
+              'Grúas portuarias de alto tonelaje y patio fiscal pavimentado independiente',
+            ],
+            infrastructureHighlightsEn: [
+              '200 m exclusive quay at 9.45 m operational draft',
+              'Heavy-duty mobile craneage & gated private bonded laydown',
+            ],
+            vesselTypesServed: ['Buques Siderúrgicos / Carga General', 'OSV y Buques Heavy-Lift'],
+            vesselTypesServedEn: ['Steel & Breakbulk Vessels', 'OSV & Project Cargo Ships'],
+            connectivity: 'Acceso vial portuario exclusivo en zona este hacia corredor industrial Tampico–Altamira.',
+            connectivityEn: 'Direct eastern port gate road access linking Tampico–Altamira industrial corridor.',
+            operationalAdvantages: ['Operación integrada con patio fiscal propio libre de interferencia con muelles 1–10.'],
+            operationalAdvantagesEn: ['Self-contained bonded yard operation independent of public Berths 1–10.'],
+            certifications: ['ISPS / PBIP'],
+          },
           procedures: ['Coordinar acceso terrestre y patio aduanal directamente con T11.'],
           restrictionsSummary: 'Longitud 200 m · Calado op. 9.45 m.',
           berths: [
@@ -608,6 +956,47 @@ export function buildAdditionalPortsData(images: {
           mapY: 56,
           imageType: 'pajaritos',
           cargoGroups: ['Hidrocarburos y Gas', 'Petroquímica y Líquidos'],
+          storageSummary: {
+            coveredSqm: 1800,
+            openYardSqm: 40000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Tanques de almacenamiento en Refinería Francisco I. Madero y Terminal Marítima conectada por batería de poliductos y líneas térmicas de asfalto.',
+            warehousesBreakdownEn:
+              'Refinería Madero & Marine Terminal tank farms served by multi-product pipelines and heated asphalt transfer lines.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal Marítima Petrolera de Refinería Madero en la Desembocadura del Pánuco',
+            positioningHeadlineEn:
+              'PEMEX Refinería Madero Marine Hydrocarbon & Asphalt Distribution Terminal',
+            address: 'Margen Izquierda Río Pánuco Km 1.5, Ciudad Madero, Tamaulipas',
+            customsRegime: 'Terminal Estratégica PEMEX Logística · Aduana de Tampico',
+            customsRegimeEn: 'PEMEX Logística Strategic Hydrocarbon Terminal · Tampico Customs',
+            commercialServices: [
+              'Carga y descarga de gasolinas, diésel UBA, combustóleo, crudo y asfaltos térmicos',
+              'Abastecimiento de cabotaje en el Golfo de México e importación/exportación de refinados',
+            ],
+            commercialServicesEn: [
+              'Pipeline marine loading/unloading of gasoline, ULSD, fuel oil, crude & heated liquid asphalt',
+              'Gulf of Mexico coastal cabotage & refined products import/export',
+            ],
+            infrastructureHighlights: [
+              '5 posiciones petroleras (480 m totales) a 9.75 m (32 ft) de calado operativo',
+              'Brazos de carga de 8" y 12", red contraincendio dedicada y poliductos directos a refinería',
+            ],
+            infrastructureHighlightsEn: [
+              '5 petroleum berths (480 m total) at 9.75 m (32 ft) maximum operational draft',
+              '8" & 12" marine loading arms, dedicated fire-fighting loop & refinery pipelines',
+            ],
+            vesselTypesServed: ['Buques Tanque Producto MR1 / Panamax (hasta 215 m LOA)', 'Asfalteros térmicos'],
+            vesselTypesServedEn: ['MR1 / Panamax Product Tankers (up to 215 m LOA)', 'Heated Bitumen Tankers'],
+            connectivity: 'Poliductos directos con Refinería Francisco I. Madero y red de abastecimiento del Noreste.',
+            connectivityEn: 'Direct refinery pipelines feeding PEMEX Madero and Northeastern Mexico fuel network.',
+            operationalAdvantages: ['Ubicación inmediata a la boca del río Pánuco reduciendo tiempo de tránsito fluvial.'],
+            operationalAdvantagesEn: ['Close proximity to Pánuco mouth minimizing upriver transit time.'],
+            certifications: ['OCIMF / SIRE', 'ISGOTT', 'ISPS / PBIP'],
+          },
           procedures: ['Vetting OCIMF/SIRE y guardia de remolcador contra incendio permanente.'],
           restrictionsSummary: 'Calado máx. 9.75 m (32 ft); restricción diurna > 200 m LOA.',
           berths: [
@@ -782,6 +1171,65 @@ export function buildAdditionalPortsData(images: {
           mapY: 38,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores', 'Carga Proyecto'],
+          storageSummary: {
+            coveredSqm: 10000,
+            openYardSqm: 65000,
+            containerYardSqm: 280000,
+            warehousesBreakdown:
+              'Patio automatizado de contenedores (280,000 m²), almacén fiscalizado TPT, patios automotrices RoRo y acceso directo de 6 carriles hacia Autopista México–Tuxpan (~281 km a CDMX).',
+            warehousesBreakdownEn:
+              'Automated container yard (280,000 m²), bonded CFS warehouse, RoRo vehicle yard & direct 6-lane connector to Mexico–Tuxpan highway (~281 km to Mexico City).',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Puerto Más Cercano al Valle de México (~281 km vía Arco Norte / México–Tuxpan) con Terminal Automatizada SSA Marine',
+            positioningHeadlineEn:
+              'Closest Deep-Water Port to Mexico City (~281 km) Operated by SSA Marine (TPT)',
+            address: 'Carr. a Barra Norte Km 5, Tuxpan de Rodríguez Cano, Veracruz',
+            customsRegime: 'Recinto Fiscalizado Especializado TPT · Aduana de Tuxpan (Carril Rápido al Altiplano)',
+            customsRegimeEn: 'Specialized Bonded Container/RoRo Terminal TPT · Tuxpan Customs',
+            commercialServices: [
+              'Operación automatizada de contenedores FCL/LCL, reefer y rutas Short Sea Shipping con Golfo EE.UU.',
+              'Manejo de automóviles RoRo, carga proyecto y carga suelta para Hidalgo, Puebla, EdoMéx y CDMX',
+              'Inspección aduanal ágil con rayos X y despacho carretero inmediato sin congestión ferroviaria',
+            ],
+            commercialServicesEn: [
+              'Automated FCL/LCL & reefer container stevedoring plus US Gulf Short Sea Shipping services',
+              'Automotive RoRo, heavy breakbulk & project cargo serving Hidalgo, Puebla & Mexico City',
+              'High-speed X-ray customs screening & direct expressway dispatch',
+            ],
+            infrastructureHighlights: [
+              '556 m de muelle en Posiciones 1–2 a 13.10 m de calado operativo',
+              '4 grúas pórtico Súper Post-Panamax y 8 grúas RTG eléctricas de patio',
+              'Enlace carretero directo a 281 km de la Ciudad de México vía Autopista México–Tuxpan y Arco Norte',
+            ],
+            infrastructureHighlightsEn: [
+              '556 m quay across Berths 1–2 rated at 13.10 m operational draft',
+              '4 Super Post-Panamax STS gantries + 8 electric RTGs',
+              'Direct highway link just ~281 km from Mexico City via Mexico–Tuxpan & Arco Norte expressways',
+            ],
+            vesselTypesServed: [
+              'Portacontenedores Post-Panamax (hasta 310 m LOA)',
+              'Buques Short-Sea Shipping, PCTC RoRo y Carga Proyecto',
+            ],
+            vesselTypesServedEn: [
+              'Post-Panamax Container Vessels (up to 310 m LOA)',
+              'Short Sea Shipping, PCTC RoRo & Heavy Project Vessels',
+            ],
+            connectivity:
+              'Autopista México–Tuxpan (~281 km / 3.5–4 h al Valle de México, Pachuca y Arco Norte), evitando cruces serranos.',
+            connectivityEn:
+              'Direct Mexico–Tuxpan toll highway (~281 km / 3.5–4 h to Mexico City & Arco Norte ring road).',
+            operationalAdvantages: [
+              'Menor distancia terrestre de cualquier puerto mexicano hacia el mercado consumidor del Valle de México.',
+              'Terminal de nueva generación operada por SSA Marine con baja congestión portuaria.',
+            ],
+            operationalAdvantagesEn: [
+              'Shortest trucking distance from any ocean port to Mexico City metropolitan consumer market.',
+              'Modern SSA Marine automated operations with minimal gate turnaround times.',
+            ],
+            certifications: ['ISPS / PBIP', 'C-TPAT / OEA', 'ISO 9001'],
+          },
           procedures: ['EDI BAPLIE 24 h previo; VUMCE 48 h pre-ETA.'],
           restrictionsSummary: 'Calado op. 13.10 m; grúas Súper Post-Panamax.',
           berths: [
@@ -816,6 +1264,49 @@ export function buildAdditionalPortsData(images: {
           mapY: 42,
           imageType: 'pajaritos',
           cargoGroups: ['Hidrocarburos y Gas', 'Petroquímica y Líquidos'],
+          storageSummary: {
+            coveredSqm: 2000,
+            openYardSqm: 35000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Más de 2.2 millones de barriles de almacenamiento en terminales privadas Servitux, Monterrá, Invex y Olmeca + 5 monoboyas offshore PEMEX/CFE conectadas a poliductos Tuxpan–Tula–Azcapotzalco.',
+            warehousesBreakdownEn:
+              '2.2M+ bbl refined fuel storage across Servitux, Monterrá, Invex & Olmeca terminals plus 5 offshore PEMEX/CFE SPM buoys linked to Tuxpan–Tula pipelines.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Principal Puerta Privada y Estatal de Importación de Combustibles hacia el Valle de México',
+            positioningHeadlineEn:
+              'Central Mexico’s Premier Refined Fuel Import Hub via South-Bank Terminals & 5 Offshore SPMs',
+            address: 'Margen Sur Río Tuxpan / Polígono Offshore Monoboyas, Tuxpan, Veracruz',
+            customsRegime: 'Recintos Fiscalizados de Hidrocarburos (CRE / ASEA) · Aduana de Tuxpan',
+            customsRegimeEn: 'CRE/ASEA Regulated Bonded Hydrocarbon Terminals · Tuxpan Customs',
+            commercialServices: [
+              'Importación de gasolinas, diésel UBA, turbosina, asfalto y combustóleo hacia el Altiplano',
+              'Almacenaje privado en tanques (>2.2 M bbl) con islas de carga para autotanques y despacho por poliducto',
+              'Operación offshore de 5 monoboyas PEMEX/CFE para alije de buques tanque hasta 13.10 m calado',
+            ],
+            commercialServicesEn: [
+              'Marine import of gasoline, ULSD, jet A-1, asphalt & fuel oil supplying Central Mexico',
+              'Private bonded tank farms (>2.2M bbl) with high-speed tanker-truck racks & pipeline injection',
+              '5 offshore PEMEX/CFE Single Point Mooring (SPM) operations up to 13.10 m draft',
+            ],
+            infrastructureHighlights: [
+              '600 m de muelles privados margen sur + 5 monoboyas offshore dedicadas',
+              'Brazos marinos de 12" y 16" y tasas de descarga de 1,800 a 3,500 m³/h',
+            ],
+            infrastructureHighlightsEn: [
+              '600 m south-bank fluid jetties + 5 dedicated offshore SPM buoys',
+              '12" & 16" marine loading arms rated at 1,800–3,500 m³/hr',
+            ],
+            vesselTypesServed: ['Buques Tanque Producto MR1 / MR2 / LR1 (hasta 250 m LOA)', 'Asfalteros y GLP'],
+            vesselTypesServedEn: ['MR1 / MR2 / LR1 Product Tankers (up to 250 m LOA)', 'Asphalt & LPG Carriers'],
+            connectivity: 'Poliductos Tuxpan–Tula y Tuxpan–Azcapotzalco hacia el Valle de México y carretera directa.',
+            connectivityEn: 'Tuxpan–Tula & Tuxpan–Azcapotzalco pipelines to Mexico City plus direct highway dispatch.',
+            operationalAdvantages: ['Reducción drástica de flete terrestre de combustibles al abastecer directamente al Centro del país.'],
+            operationalAdvantagesEn: ['Closest marine fuel entry point to Mexico City & central plateau demand centers.'],
+            certifications: ['OCIMF / SIRE', 'ISGOTT', 'ASEA / CRE', 'ISPS / PBIP'],
+          },
           procedures: ['Inspección OCIMF / SIRE y protocolo de amarre en monoboya (SPM).'],
           restrictionsSummary: 'Calado 13.1 m en exterior; restricción de marejada en monoboyas > 1.8 m.',
           berths: [
@@ -850,6 +1341,47 @@ export function buildAdditionalPortsData(images: {
           mapY: 68,
           imageType: 'channel',
           cargoGroups: ['Granel Agrícola', 'Granel Mineral', 'Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 22000,
+            openYardSqm: 90000,
+            containerYardSqm: 20000,
+            warehousesBreakdown:
+              'Bodegas fiscales de recinto interior (22,000 m²), silos/bodegas graneleras privadas río arriba y patios de fabricación de estructuras petroleras offshore.',
+            warehousesBreakdownEn:
+              '22,000 m² fiscal warehouses along public berths, upriver private grain/mineral silos & offshore structure fabrication yards.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminales Fluviales Públicas y Privadas de Graneles, Acero y Estructuras Offshore',
+            positioningHeadlineEn:
+              'Upriver Public & Private Bulk Grain, Mineral, Breakbulk & Offshore Fabrication Quays',
+            address: 'Carretera a la Barra / Margen Izquierda Río Tuxpan, Tuxpan, Veracruz',
+            customsRegime: 'Recinto Fiscal Portuario ASIPONA y Terminales Privadas Fluviales · Aduana de Tuxpan',
+            customsRegimeEn: 'ASIPONA Public Fiscal Berths & Private River Terminals · Tuxpan Customs',
+            commercialServices: [
+              'Importación de maíz, trigo, fertilizantes y clinker con tolvas ecológicas hacia silos fluviales',
+              'Manejo de acero, cemento y fabricación/embarque de plataformas y estructuras offshore río arriba',
+            ],
+            commercialServicesEn: [
+              'Bulk corn, wheat, fertilizer & clinker discharge via dust-controlled hoppers into river silos',
+              'Steel breakbulk handling & upriver offshore platform fabrication/load-outs',
+            ],
+            infrastructureHighlights: [
+              '540 m en 3 posiciones públicas + más de 30 instalaciones fluviales especializadas (10.05 m calado)',
+              'Dársena de ciaboga interior 420 × 220 m y grúas móviles con tolvas ecológicas',
+            ],
+            infrastructureHighlightsEn: [
+              '540 m across 3 public berths + 30+ private upriver installations (10.05 m official draft)',
+              '420 × 220 m interior turning basin, mobile cranes & enclosed hoppers',
+            ],
+            vesselTypesServed: ['Graneleros Handysize', 'Buques Carga General y Barcazas Offshore'],
+            vesselTypesServedEn: ['Handysize Bulkers', 'General Cargo & Offshore Barges'],
+            connectivity: 'Conexión carretera Tuxpan–Tampico y autopista México–Tuxpan.',
+            connectivityEn: 'Direct link to Tuxpan–Tampico corridor and Mexico–Tuxpan toll road.',
+            operationalAdvantages: ['Acceso directo a 35 terminales privadas fluviales especializadas por producto.'],
+            operationalAdvantagesEn: ['Consolidates 35 product-dedicated upriver industrial facilities.'],
+            certifications: ['ISPS / PBIP', 'SENASICA'],
+          },
           procedures: ['Control de velocidad máx. 6 kt al cruzar por zona de muelles fluviales.'],
           restrictionsSummary: 'Calado oficial interior 10.05 m (33 ft).',
           berths: [
@@ -1023,6 +1555,78 @@ export function buildAdditionalPortsData(images: {
           mapY: 28,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 16000,
+            openYardSqm: 85000,
+            containerYardSqm: 720000,
+            warehousesBreakdown:
+              'Terminal de 72 hectáreas totales en Fase II (Bahía Norte) con 1,050 m de frente de muelle planificado, patio de contenedores de alta densidad, +1,000 tomas reefer, espuela intermodal dual Ferrosur/KCSM y capacidad superior a 2.4 millones de TEUs/año al término del plan maestro.',
+            warehousesBreakdownEn:
+              '72-hectare Bahía Norte Phase II facility with 1,050 m planned quay, high-density container stacks, 1,000+ reefer plugs, dual Ferrosur/KCSM rail yard and 2.4M TEUs/year master-plan capacity.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Hutchison Ports ICAVE Fase II (Bahía Norte) — 72 ha, -15.5 m Calado y Hub Intermodal al Altiplano',
+            positioningHeadlineEn:
+              'Hutchison Ports ICAVE Phase II (Bahía Norte) — 72 ha Deep-Water Flagship & Dual-Rail Mexico City Gateway',
+            address: 'Av. Nuevo Veracruz Portuario Km 13.5, Ampliación Bahía Norte, Veracruz, Veracruz',
+            customsRegime: 'Recinto Fiscalizado Privado (Hutchison Ports ICAVE) · Aduana de Veracruz',
+            customsRegimeEn: 'Bonded Private Container Concession (Hutchison Ports ICAVE) · Veracruz Customs',
+            commercialServices: [
+              'Estiba/desestiba de portacontenedores Post-Panamax y New-Panamax hasta 366 m LOA (34–40 mov/h por grúa)',
+              'Gestión integral de carga refrigerada reefer e inspecciones OISA / SENASICA / COFEPRIS in-situ',
+              'Despacho directo en doble espuela ferroviaria intermodal (CPKC / KCSM + Ferrosur) hacia Puebla, Bajío y Valle de México',
+              'Manejo de carga sobredimensionada OOG, desconsolidación CFS y trazabilidad digital MediPort / PIS',
+            ],
+            commercialServicesEn: [
+              'Post-Panamax & New-Panamax container handling up to 366 m LOA at 34–40 moves/hr per crane',
+              'Cold-chain reefer monitoring and dockside OISA / SENASICA / COFEPRIS phytosanitary inspections',
+              'Direct dual-rail intermodal dispatch (CPKC + Ferrosur) to Puebla, Bajío and Greater Mexico City',
+              'Out-of-Gauge (OOG) project lifts, CFS warehousing and paperless MediPort / PIS gate release',
+            ],
+            infrastructureHighlights: [
+              '72 hectáreas de desarrollo portuario en Bahía Norte con 700–1,050 m de muelle (-15.5 m / 14.5 m op.)',
+              '7+ grúas Pórtico Súper Post-Panamax, grúas RTG electrificadas y patio ferroviario propio',
+              'Conexión directa al Libramiento Portuario Km 13.5 evitando el tráfico urbano de Veracruz',
+            ],
+            infrastructureHighlightsEn: [
+              '72 ha greenfield expansion in Bahía Norte with 700–1,050 m deep-water berth (-15.5 m / 14.5 m op.)',
+              '7+ Super Post-Panamax STS cranes, electrified RTG fleet and dedicated on-dock rail yard',
+              'Direct Km 13.5 Port Bypass access avoiding downtown Veracruz urban congestion',
+            ],
+            vesselTypesServed: [
+              'Portacontenedores Post-Panamax y New-Panamax Atlántico/Golfo (hasta 366 m LOA)',
+              'Buques Feeders Regionales del Golfo y Caribe',
+            ],
+            vesselTypesServedEn: [
+              'Atlantic / Gulf Post-Panamax & New-Panamax Container Liners (up to 366 m LOA)',
+              'Regional Gulf & Caribbean Feeder Vessels',
+            ],
+            connectivity:
+              'Única terminal del Golfo con doble acceso ferroviario simultáneo (Ferrosur / Grupo México y CPKC) + Libramiento Portuario Km 13.5 hacia Autopista 150D Veracruz–Puebla–CDMX.',
+            connectivityEn:
+              'Dual Class-I on-dock rail (Ferrosur & CPKC) + Km 13.5 Port Bypass directly onto Hwy 150D to Puebla & Mexico City.',
+            customsProcess: [
+              'Transmisión VUCEM, archivo EDI BAPLIE 24 h previas y registro obligatorio en MediPort / PIS.',
+              'Reconocimiento automatizado PITA en garita norte de alta capacidad y zona única de inspección.',
+              'Salida directa en tren doble estiba hacia Pantaco / Puerta México (CDMX) o convoy carretero por Km 13.5.',
+            ],
+            customsProcessEn: [
+              'VUCEM filing, EDI BAPLIE 24 h pre-arrival and MediPort / PIS gate appointment booking.',
+              'PITA automated customs clearance at Bahía Norte multi-lane gate complex.',
+              'Direct double-stack block train release to Mexico City or highway dispatch via Km 13.5 Bypass.',
+            ],
+            operationalAdvantages: [
+              'Principal puerta contenerizada de México en el Golfo hacia Europa, Costa Este de EE.UU. y Sudamérica.',
+              'Mayor profundidad de agua en el Golfo de México (-15.5 m) con salida ferroviaria dual competitiva.',
+            ],
+            operationalAdvantagesEn: [
+              'Mexico’s #1 Gulf Coast container gateway linking Europe, US East Coast and East Coast South America.',
+              'Deepest Gulf container berth (-15.5 m) paired with dual-carrier rail competition.',
+            ],
+            keyClientsOrTrades: ['Hutchison Ports ICAVE', 'MSC / Maersk / CMA CGM / Hapag-Lloyd', 'Ferrosur & CPKC'],
+            certifications: ['PBIP / ISPS', 'OEA', 'C-TPAT', 'ISO 9001 / 14001 / 45001', 'ECOPORTS'],
+          },
           procedures: ['EDI BAPLIE 24 h previo; registro obligatorio en MediPort y PIS.'],
           restrictionsSummary: 'Profundidad -15.5 m; calado op. hasta 14.5 m; muelle 700+ m.',
           berths: [
@@ -1057,6 +1661,78 @@ export function buildAdditionalPortsData(images: {
           mapY: 32,
           imageType: 'pajaritos',
           cargoGroups: ['Granel Mineral', 'Granel Agrícola', 'Hidrocarburos y Gas', 'Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 68000,
+            openYardSqm: 220000,
+            containerYardSqm: 95000,
+            warehousesBreakdown:
+              'Terminal Semiespecializada Grupo CICE (22 ha, 550 m muelle, 13,800 TEUs estática y ~2,000 m de vías) + domos minerales Grupo Logra + silos graneleros mecanizados Gramosa + parque de tanques IEnova Bahía Norte (>2.1M bbl combustibles).',
+            warehousesBreakdownEn:
+              'Grupo CICE Semi-Specialized Terminal (22 ha, 550 m quay, 13,800 TEU static & ~2,000 m rail) + Logra mineral domes + Gramosa automated grain silos + IEnova hydrocarbon tank farm (2.1M+ bbl).',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Cluster Especializado Bahía Norte (CICE · Logra · Gramosa · IEnova) — Acero, Granos y Combustibles',
+            positioningHeadlineEn:
+              'Bahía Norte Specialized Cluster (CICE · Logra · Gramosa · IEnova) — Steel, Grain, Minerals & Fuels',
+            address: 'Polígono Industrial Bahía Norte Km 13.5, Puerto de Veracruz, Veracruz',
+            customsRegime: 'Cuatro Cesionarios Fiscalizados Especializados (CICE · Logra · Gramosa · IEnova) · Aduana de Veracruz',
+            customsRegimeEn: 'Four Specialized Bonded Concessions (CICE · Logra · Gramosa · IEnova) · Veracruz Customs',
+            commercialServices: [
+              'Carga semiespecializada, rollos de acero, contenedores, proyectos pesados y 13,800 TEUs de patio en Grupo CICE (22 ha / 550 m muelle)',
+              'Manejo hermético de concentrados minerales, coque, fertilizantes y ferroaleaciones con bandas antipolvo (Grupo Logra)',
+              'Descarga mecanizada de maíz, trigo, soya y oleaginosas con torres succionadoras y silos de alta capacidad (Gramosa)',
+              'Recepción, almacenamiento y trasvase de gasolinas, diésel y turbosina por brazos marinos 12"/16" (IEnova Bahía Norte)',
+            ],
+            commercialServicesEn: [
+              'Semi-specialized breakbulk, steel coils, heavy project lifts, containers and 13,800-TEU yard at Grupo CICE (22 ha)',
+              'Dust-free enclosed handling of mineral concentrates, petcoke, fertilizers & ferroalloys (Grupo Logra)',
+              'High-speed pneumatic/mechanical grain discharge & silo storage for corn, wheat and soy (Gramosa)',
+              'Refined fuel & Jet A-1 marine terminal reception, tank storage and rail/truck loading (IEnova)',
+            ],
+            infrastructureHighlights: [
+              '1,220 m de frentes de atraque combinados en Bahía Norte con calados operativos de 13.5 a 14.0 m',
+              '~2,000 m de espuelas ferroviarias internas dentro de CICE conectadas al Libramiento Ferroviario doble',
+              'Bandas cerradas antipolvo, grúas MHC de 125 ton, torres graneleras e infraestructura energética ISGOTT',
+            ],
+            infrastructureHighlightsEn: [
+              '1,220 m combined Bahía Norte quays rated to 13.5–14.0 m operational draft',
+              '~2,000 m internal rail tracks inside CICE linking both Ferrosur and CPKC mainlines',
+              'Sealed dust-control conveyors, 125t MHC cranes, grain unloaders and ISGOTT-compliant fuel arms',
+            ],
+            vesselTypesServed: [
+              'Buques de Carga General / Steel Coils / Heavy-Lift / Feeders (CICE)',
+              'Graneleros Panamax / Supramax Minerales y Agrícolas (Logra / Gramosa)',
+              'Buques Tanque MR / LR1 de Productos Refinados (IEnova)',
+            ],
+            vesselTypesServedEn: [
+              'General Cargo / Steel / Heavy-Lift / Container Feeders (CICE)',
+              'Panamax / Supramax Mineral & Grain Bulkers (Logra / Gramosa)',
+              'MR / LR1 Clean Product Tankers (IEnova)',
+            ],
+            connectivity:
+              'Libramiento Ferroviario Ferroportuario Veracruz (enlace directo Ferrosur y CPKC) y Autopista Km 13.5 hacia Valle de México, Puebla y Bajío.',
+            connectivityEn:
+              'Veracruz Port Rail Bypass (direct Ferrosur & CPKC) + Km 13.5 Freight Expressway toward Puebla, CDMX & Bajío.',
+            customsProcess: [
+              'Registro previo VUCEM, inspección fitosanitaria SENASICA/OISA (Gramosa) y control SIRE/CRE (IEnova).',
+              'Despacho aduanal PITA en garita Bahía Norte o liberación directa en espuela ferroviaria unitaria.',
+            ],
+            customsProcessEn: [
+              'Pre-arrival VUCEM clearance, SENASICA/OISA grain examination (Gramosa) and SIRE/CRE compliance (IEnova).',
+              'Automated PITA truck gate clearance or direct unit-train customs release.',
+            ],
+            operationalAdvantages: [
+              'Alta especialización por tipo de carga eliminando contaminación cruzada entre acero, minerales, alimentos y combustibles.',
+              'Capacidad de trenes unitarios de grano, acero y carrotanques energéticos desde muelle.',
+            ],
+            operationalAdvantagesEn: [
+              'Dedicated single-commodity terminals eliminating cross-contamination across steel, grains, bulk and fuels.',
+              'Unit-train dispatch capability directly from quay-side yards and fuel racks.',
+            ],
+            keyClientsOrTrades: ['Grupo CICE', 'Grupo Logra', 'Gramosa Agroalimentos', 'IEnova / Sempra / Valero'],
+            certifications: ['PBIP / ISPS', 'ISGOTT / OCIMF SIRE', 'SENASICA / OISA', 'ISO 9001 / 14001 / 45001'],
+          },
           procedures: ['Vetting SIRE en IEnova; inspección fitosanitaria SENASICA en Gramosa.'],
           restrictionsSummary: 'Calados op. entre 13.0 m y 14.0 m según terminal de Bahía Norte.',
           berths: [
@@ -1106,6 +1782,78 @@ export function buildAdditionalPortsData(images: {
           mapY: 66,
           imageType: 'channel',
           cargoGroups: ['Carga General y Contenedores', 'Granel Agrícola', 'Petroquímica y Líquidos', 'Carga Proyecto'],
+          storageSummary: {
+            coveredSqm: 78000,
+            openYardSqm: 260000,
+            containerYardSqm: 120000,
+            warehousesBreakdown:
+              'Amplio ecosistema de bodegas fiscales cubiertas en Muelles 1–7, silos graneleros de Bahía Sur, patios automotrices RoRo de exportación/importación (SSA / CICE en M4N/4S y M5), terminales de tanques químicos Vopak en Muelle 8 y silos de cemento en Muelle Cementos.',
+            warehousesBreakdownEn:
+              'Extensive covered fiscal warehouses at Berths 1–7, South Bay grain silos, automotive RoRo export/import compounds (SSA / CICE at M4N/4S & M5), Vopak chemical tank farm at Berth 8 and cement silos.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Recinto Tradicional Bahía Sur — Hub Automotriz RoRo (Muelles 4N/4S y 5), Químicos Vopak (M8), Cemento y Carga General',
+            positioningHeadlineEn:
+              'Veracruz Bahía Sur Historic Enclosure — Premier Automotive RoRo Hub, Vopak Chemicals (Berth 8), Grain & Breakbulk',
+            address: 'Recinto Portuario Tradicional Bahía Sur s/n, Col. Centro, Veracruz, Veracruz',
+            customsRegime: 'Recinto Fiscal ASIPONA Veracruz & Cesionarios (SSA · CICE · Vopak · Apasco/Cemex) · Aduana de Veracruz',
+            customsRegimeEn: 'ASIPONA Veracruz Fiscal Quays & Bonded Concessions (SSA · CICE · Vopak) · Veracruz Customs',
+            commercialServices: [
+              'Embarque y desembarque automotriz Ro-Ro de alta productividad (280–350 vehículos/h) para armadoras de Puebla, Bajío y Centro (Muelles 4N, 4S y 5)',
+              'Recepción y almacenamiento químico/petroquímico y aceites líquidos en tanques dedicados Vopak (Muelle 8 hasta 38 ft / 11.58 m)',
+              'Maniobras de carga general, acero, carga proyecto, grano agrícola y cemento/clinker en Muelles 1–7, TUM y Cementos (31–36 ft)',
+              'Almacenaje fiscalizado en +78,000 m² de bodegas techadas, consolidación multimodal y despacho ferroviario directo desde muelle',
+            ],
+            commercialServicesEn: [
+              'High-speed automotive RoRo stevedoring (280–350 units/hr) serving OEM assembly plants across Puebla & Bajío (Berths 4N/4S & 5)',
+              'Bulk liquid chemical, petrochemical and base-oil terminal operations at Vopak Berth 8 (up to 38 ft / 11.58 m draft)',
+              'Breakbulk, steel, project cargo, agricultural bulk and cement/clinker across Berths 1–7, TUM & Cement Pier (31–36 ft)',
+              '78,000+ m² covered bonded sheds, VPC staging and direct on-dock rail dispatch',
+            ],
+            infrastructureHighlights: [
+              'Más de 10 posiciones históricas especializadas (1, 2, 4N, 4S, 5–8, TUM 250 m, Cementos 277 m, Contenedores Sur 507 m / 42 ft y Muelle T)',
+              'Líder del Golfo de México en exportación e importación automotriz RoRo con patios y rampas dedicadas',
+              'Granjas de tanques químicos Vopak y terminales graneleras/cementeras conectadas por tubería y banda a pie de muelle',
+            ],
+            infrastructureHighlightsEn: [
+              'Over 10 specialized berths (1, 2, 4N, 4S, 5–8, TUM 250 m, Cement 277 m, South Container 507 m / 42 ft & T-pier)',
+              'Gulf Coast leader in finished vehicle RoRo export & import logistics with dedicated staging lots',
+              'Shore-to-berth Vopak chemical pipelines, cement pneumatic lines and grain conveyor towers',
+            ],
+            vesselTypesServed: [
+              'Buques Car Carriers / RoRo Automotrices (PCTC hasta 225 m LOA)',
+              'Buques Quimiqueros Parcel Tankers (Vopak Muelle 8)',
+              'Buques de Carga General, Cementeros y Graneleros Handymax / Panamax',
+            ],
+            vesselTypesServedEn: [
+              'Pure Car & Truck Carriers (PCTC / RoRo up to 225 m LOA)',
+              'Chemical Parcel Tankers (Vopak Berth 8)',
+              'General Cargo, Cement Carriers & Handymax / Panamax Bulkers',
+            ],
+            connectivity:
+              'Espuelas ferroviarias directas de Ferrosur y CPKC dentro del Recinto Fiscal + accesos hacia Libramiento Portuario y Autopista 150D (Puebla/VW/Audi–CDMX).',
+            connectivityEn:
+              'Direct Ferrosur & CPKC rail sidings inside the Fiscal Enclosure + Port Bypass onto Hwy 150D to Puebla/OEM plants & Mexico City.',
+            customsProcess: [
+              'Control de tránsito RoRo por VIN/código de barras, VUCEM y reconocimiento aduanal PITA en módulos dedicados.',
+              'Protocolo ISGOTT/IBC y muestreo químico en Muelle 8; inspección fitosanitaria OISA en graneles agrícolas.',
+            ],
+            customsProcessEn: [
+              'VIN-tracked RoRo customs gate control, VUCEM filing and automated PITA clearance.',
+              'ISGOTT/IBC chemical transfer protocol at Berth 8 and OISA phytosanitary inspection for grain.',
+            ],
+            operationalAdvantages: [
+              'Infraestructura automotriz más consolidada del Golfo de México con enlace directo a plantas de Puebla y Bajío.',
+              'Disponibilidad simultánea de múltiples posiciones públicas y privadas por calado y especialidad.',
+            ],
+            operationalAdvantagesEn: [
+              'Gulf Coast’s premier automotive RoRo export hub serving central Mexican OEM assembly corridors.',
+              'Broad multi-berth flexibility spanning liquids, cement, grain, RoRo and breakbulk.',
+            ],
+            keyClientsOrTrades: ['Volkswagen / Audi / GM / Nissan / Stellantis', 'Vopak México', 'SSA México', 'Grupo CICE / Holcim'],
+            certifications: ['PBIP / ISPS', 'ISGOTT / CDI-T (Vopak)', 'ISO 9001 / 14001 / 45001'],
+          },
           procedures: ['Control automotriz RoRo en Muelles 4N/4S y 5; protocolo químico en Muelle 8 (38 ft).'],
           restrictionsSummary: 'Calados diferenciados de 27 ft (8.23 m Muelle T) hasta 42 ft (12.80 m Contenedores).',
           berths: [
@@ -1297,6 +2045,63 @@ export function buildAdditionalPortsData(images: {
           mapY: 44,
           imageType: 'recintoSur',
           cargoGroups: ['Carga Proyecto', 'Carga General y Contenedores', 'Granel Mineral'],
+          storageSummary: {
+            coveredSqm: 4500,
+            openYardSqm: 110000,
+            containerYardSqm: 25000,
+            warehousesBreakdown:
+              'Patios reforzados heavy-lift y almacenaje aduanal de carga proyecto energética (110,000 m²) tras los 6 módulos comerciales TUM (300 m) adyacentes a Refinería Olmeca.',
+            warehousesBreakdownEn:
+              'Heavy-lift reinforced laydown & customs project yards (110,000 m²) backing the 6 TUM modules (300 m) adjacent to Olmeca Refinery.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal Comercial Multipropósito de Proyectos Energéticos y Corredor Refinería Olmeca (32 ft)',
+            positioningHeadlineEn:
+              'Commercial Heavy-Lift Project & Olmeca Refinery Gateway Terminal (300 m / 32 ft)',
+            address: 'Carretera Federal Barra de Dos Bocas s/n, Paraíso, Tabasco',
+            customsRegime: 'Recinto Fiscal Portuario ASIPONA Dos Bocas · Aduana de Dos Bocas',
+            customsRegimeEn: 'ASIPONA Dos Bocas Fiscal Enclosure · Dos Bocas Customs',
+            commercialServices: [
+              'Recepción de módulos sobredimensionados, equipos de refinería, tubería revestida y grúas heavy-lift',
+              'Descarga de barita, bentonita, cemento petrolero, acero y contenedores offshore en 6 módulos continuos',
+              'Atención a cruceros turísticos hasta 300 m LOA con coordinación portuaria y aduanal integral',
+            ],
+            commercialServicesEn: [
+              'Heavy-lift discharge of oversized refinery modules, coated pipe & industrial machinery',
+              'Oilfield bulk stevedoring (barite, bentonite, cement), steel & containers across 6 quay modules',
+              'Cruise ship berth accommodation up to 300 m LOA with full port clearance',
+            ],
+            infrastructureHighlights: [
+              '300 m continuos (6 módulos de 50 m) a 9.75 m (32 ft) de calado oficial',
+              'Patios reforzados heavy-lift, básculas camioneras y dársena de ciaboga de 300 m',
+            ],
+            infrastructureHighlightsEn: [
+              '300 m quay (6 x 50 m modules) rated to 9.75 m (32 ft) official draft',
+              'Reinforced heavy-lift yards, truck scales & 300 m turning basin',
+            ],
+            vesselTypesServed: [
+              'Buques Heavy-Lift / Carga Proyecto',
+              'Graneleros Costeros, Carga General y Cruceros (hasta 300 m)',
+            ],
+            vesselTypesServedEn: [
+              'Heavy-Lift & Project Cargo Ships',
+              'Coastal Bulkers, General Cargo & Cruise Ships (up to 300 m)',
+            ],
+            connectivity:
+              'Conexión inmediata con Refinería Olmeca, corredor industrial Paraíso–Villahermosa y nuevo enlace ferroviario Estación Roberto Ayala–Dos Bocas.',
+            connectivityEn:
+              'Direct gate access to Olmeca Refinery, Paraíso–Villahermosa highway & new Dos Bocas rail link.',
+            operationalAdvantages: [
+              'Cercanía inmediata a la Refinería Olmeca y corredor industrial costero de Tabasco.',
+              'Operación continua 24/7 para maniobras críticas de proyecto energético.',
+            ],
+            operationalAdvantagesEn: [
+              'Immediate proximity to Olmeca Refinery minimizing oversized heavy-haul distances.',
+              '24/7 port window for critical energy-sector turnarounds.',
+            ],
+            certifications: ['ISPS / PBIP', 'ISO 9001'],
+          },
           procedures: ['Confirmar 3 remolcadores si LOA está entre 185 y 200 m; VUMCE 48 h previas.'],
           restrictionsSummary: 'Calado oficial 9.75 m (32 ft); LOA máx. 190 m carga / 300 m cruceros.',
           berths: [
@@ -1331,6 +2136,55 @@ export function buildAdditionalPortsData(images: {
           mapY: 54,
           imageType: 'pajaritos',
           cargoGroups: ['Hidrocarburos y Gas', 'Carga Proyecto'],
+          storageSummary: {
+            coveredSqm: 12000,
+            openYardSqm: 185000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Bases integradas de abastecimiento PEMEX PEP y contratistas con plantas de lodos de perforación, silos neumáticos de barita/cemento, tanques de diésel marino y patios de tubería offshore.',
+            warehousesBreakdownEn:
+              'Integrated PEMEX PEP & service company shorebases featuring mud plants, bulk barite/cement silos, MGO tanks & pipe laydown yards.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Hub 24/7 de Abastecimiento Offshore Sonda de Campeche y Terminal de Exportación TMDB',
+            positioningHeadlineEn:
+              '24/7 Bay of Campeche Offshore Supply Hub & Crude Export Terminal (TMDB)',
+            address: 'Dársena Offshore PEMEX, Puerto de Dos Bocas, Paraíso, Tabasco',
+            customsRegime: 'Recinto Portuario Offshore PEMEX · Aduana de Dos Bocas',
+            customsRegimeEn: 'PEMEX Offshore Supply Precinct · Dos Bocas Customs',
+            commercialServices: [
+              'Suministro simultáneo bajo muelle de diésel marino, agua industrial, lodos base agua/aceite y barita/cemento a granel',
+              'Movilización de tripulaciones offshore (crew change), contenedores CCU, tubería de perforación y herramienta petrolera',
+              'Exportación de crudo Maya y Olmeca mediante monoboyas costa afuera de la Terminal Marítima Dos Bocas (TMDB)',
+            ],
+            commercialServicesEn: [
+              'Simultaneous quayside loading of MGO, drill water, OBM/WBM muds & pneumatic bulk barite/cement',
+              'Offshore crew-boat mobilization, DNV CCU baskets, drill pipe & wellhead equipment staging',
+              'Crude oil export via offshore Single Point Mooring (SPM) buoys at TMDB',
+            ],
+            infrastructureHighlights: [
+              '950 m en Muelle Norte, Oriente I y Pilotos + monoboyas TMDB a 12 MN costa afuera',
+              'Plantas de lodos, silos neumáticos, bombas de alta capacidad en muelle y bases logísticas integradas',
+            ],
+            infrastructureHighlightsEn: [
+              '950 m quay across North, East I & Pilots piers + TMDB offshore SPM buoys',
+              'On-site liquid mud plants, bulk silos, dockside pumping stations & contractor yards',
+            ],
+            vesselTypesServed: ['Buques OSV / PSV / AHTSV / Crew Boats', 'Buques Tanque Crudo Aframax / VLCC (TMDB)'],
+            vesselTypesServedEn: ['OSV / PSV / AHTSV / Fast Crew Boats', 'Aframax / VLCC Crude Tankers (TMDB)'],
+            connectivity: 'Ductos petroleros desde campos marinos y terrestres de Tabasco/Campeche y red logística Paraíso.',
+            connectivityEn: 'Direct offshore/onshore crude pipeline gathering grid and Tabasco oilfield corridor.',
+            operationalAdvantages: [
+              'Base logística con menor tiempo de navegación hacia los principales complejos productores de la Sonda de Campeche.',
+              'Operación continua 24/7 con prioridad para soporte a plataformas marinas.',
+            ],
+            operationalAdvantagesEn: [
+              'Shortest steaming time to major producing fields in the Bay of Campeche.',
+              'Dedicated 24/7 turnaround capability supporting offshore drilling & production.',
+            ],
+            certifications: ['ISPS / PBIP', 'SASISOPA / ASEA', 'OCIMF / SIRE (TMDB)'],
+          },
           procedures: ['Permiso interno PEMEX / CCTM Dos Bocas en VHF CH 13.'],
           restrictionsSummary: 'Ventana continua 24/7; prioridad para emergencias de plataformas.',
           berths: [
@@ -1484,6 +2338,79 @@ export function buildAdditionalPortsData(images: {
           mapY: 46,
           imageType: 'channel',
           cargoGroups: ['Carga Proyecto', 'Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 4200,
+            openYardSqm: 38000,
+            containerYardSqm: 14000,
+            warehousesBreakdown:
+              'Bodega fiscal aduanal en Dársena 1 + 38,000 m² de patios pavimentados para tubería OCTG, contenedores offshore (CCUs) y carga de proyectos petroleros.',
+            warehousesBreakdownEn:
+              'Bonded customs shed at Dock 1 + 38,000 m² paved laydown yards for OCTG pipe, offshore Cargo Carrying Units (CCUs) and energy project cargo.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Frente Público Offshore y Recinto Fiscalizado para Logística de la Sonda de Campeche',
+            positioningHeadlineEn:
+              'Public Offshore Supply Quays & Bonded Enclosure Serving Bay of Campeche Rigs',
+            address: 'Av. 4 Oriente s/n, Zona Industrial y Portuaria Laguna Azul, Cd. del Carmen, Campeche',
+            customsRegime: 'Recinto Fiscal Portuario APICAM · Aduana de Ciudad del Carmen',
+            customsRegimeEn: 'APICAM Bonded Port Enclosure · Ciudad del Carmen Customs',
+            commercialServices: [
+              'Carga y descarga rápida de contenedores offshore (CCUs), canastillas y equipos de perforación',
+              'Manejo de tubería petrolera OCTG, casing, válvulas submarinas y refacciones críticas',
+              'Suministro de agua industrial, víveres avituallados y diésel marino a flota OSV / PSV',
+              'Resguardo aduanal y maniobras de importación temporal de equipo petrolero en régimen offshore',
+            ],
+            commercialServicesEn: [
+              'Rapid OSV/PSV loadout of certified offshore Cargo Carrying Units (CCUs), baskets and drilling tools',
+              'Handling of OCTG casing, subsea trees, valves and critical rig spare parts',
+              'Potable/industrial water, ship chandling provisions and marine gasoil bunkering alongside',
+              'Bonded customs staging and temporary import clearance for offshore oilfield equipment',
+            ],
+            infrastructureHighlights: [
+              '780 m lineales de atraque multipropósito entre Dársenas 1 y 2',
+              'Calado operativo de 5.4 m (17.7 ft) en canal de barra protegido',
+              'Proximidad inmediata al Helipuerto de Ciudad del Carmen y zona aduanal',
+            ],
+            infrastructureHighlightsEn: [
+              '780 m total multipurpose quay wall across Basins 1 & 2',
+              '5.4 m (17.7 ft) operational draft inside protected bar channel',
+              'Immediate proximity to Ciudad del Carmen Heliport & Customs compound',
+            ],
+            vesselTypesServed: [
+              'Buques de Suministro Costa Afuera (PSV / OSV / FSV)',
+              'Remolcadores Manejadores de Anclas (AHTS) y Barcazas de Proyecto',
+            ],
+            vesselTypesServedEn: [
+              'Platform Supply Vessels (PSV / OSV / Fast Supply Vessels)',
+              'Anchor Handling Tugs (AHTS) & Offshore Project Barges',
+            ],
+            connectivity:
+              'Enlace inmediato con Parque Industrial Laguna Azul, Carretera Costera 180 y Helipuerto PEMEX / taxis aéreos hacia plataformas.',
+            connectivityEn:
+              'Direct link to Laguna Azul Industrial Park, Fed. Hwy 180 and Ciudad del Carmen Offshore Heliport.',
+            customsProcess: [
+              'Transmisión VUMCE de manifiesto de carga y lista de tripulantes/pasajeros costa afuera.',
+              'Pedimento de importación temporal o aviso de traslado offshore ante Aduana de Cd. del Carmen.',
+              'Validación de certificados de izaje (LOLER / DNV 2.7-1) para canastillas y contenedores offshore.',
+              'Control de acceso PBIP APICAM y liberación en ventana de 6–12 h para turnaround de OSV.',
+            ],
+            customsProcessEn: [
+              'VUMCE electronic cargo manifest and offshore crew/passenger roster submission.',
+              'Temporary import pedimento or offshore transit notice cleared with Cd. del Carmen Customs.',
+              'Lifting gear & DNV 2.7-1 certification verification for offshore CCUs/baskets.',
+              'APICAM ISPS gate clearance enabling 6–12 h rapid OSV turnaround.',
+            ],
+            operationalAdvantages: [
+              'Turnarounds express (6–12 horas) para abastecimiento continuo de campos Cantarell y Ku-Maloob-Zaap.',
+              'Integración directa mar-aire mediante cercanía al helipuerto petrolero.',
+            ],
+            operationalAdvantagesEn: [
+              'Express 6–12 hour vessel turnarounds sustaining Cantarell & Ku-Maloob-Zaap offshore blocks.',
+              'Seamless sea-air crew & urgent spare transfer next to Cd. del Carmen Heliport.',
+            ],
+            certifications: ['PBIP / ISPS', 'DNV 2.7-1 Rigging Compliance', 'APICAM Calidad'],
+          },
           procedures: ['Aviso de arribo VUMCE y lista de tripulantes/pasajeros costa afuera.'],
           restrictionsSummary: 'Calado operativo máximo 5.4 m (17.7 ft) en canal de barra.',
           berths: [
@@ -1518,6 +2445,70 @@ export function buildAdditionalPortsData(images: {
           mapY: 52,
           imageType: 'pajaritos',
           cargoGroups: ['Hidrocarburos y Gas', 'Carga Proyecto'],
+          storageSummary: {
+            coveredSqm: 18500,
+            openYardSqm: 110000,
+            containerYardSqm: 12000,
+            warehousesBreakdown:
+              'Silos neumáticos de barita, bentonita y cemento petrolero, granjas de tanques para lodos base aceite/salmueras, naves de mantenimiento naval y +110,000 m² de patios petroleros privados.',
+            warehousesBreakdownEn:
+              'Pneumatic silos for barite, bentonite & oilwell cement, liquid mud/brine tank farms, marine repair hangars and 110,000+ m² private oilfield yards.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Hub Petrolero Privado de Mayor Concentración Offshore en la Sonda de Campeche',
+            positioningHeadlineEn:
+              'Mexico’s Densest Private Offshore Oilfield Services Hub (Cotemar · Halliburton · PEMEX)',
+            address: 'Parque Industrial y Portuario Laguna Azul, Dársenas 3 y 4, Cd. del Carmen, Campeche',
+            customsRegime: 'Cesionarios Portuarios APICAM y Bases Privadas Fiscalizadas',
+            customsRegimeEn: 'APICAM Port Concessionaires & Bonded Oilfield Logistics Bases',
+            commercialServices: [
+              'Bombeo simultáneo de lodos de perforación base aceite/agua, salmueras de terminación, diésel marino y agua potable',
+              'Suministro neumático de cemento petrolero, barita y bentonita a granel hacia barcos estimuladores y PSV',
+              'Mantenimiento naval, soldadura certificada, overhaul de motores marinos y rehabilitación de equipos offshore (Cotemar)',
+              'Gestión integral MARPOL (residuos aceitosos, recortes de perforación y aguas residuales)',
+            ],
+            commercialServicesEn: [
+              'Simultaneous bulk pumping of oil/water-based drilling muds, completion brines, marine gasoil and drill water',
+              'Pneumatic bulk transfer of oilwell cement, barite and bentonite to stimulation vessels & PSVs',
+              'Marine hull/machinery maintenance, certified welding and offshore rig refurbishment support (Cotemar)',
+              'Certified MARPOL waste reception (slops, drilling cuttings & bilge/grey water)',
+            ],
+            infrastructureHighlights: [
+              '1,450 m de frentes de atraque especializados distribuidos en Dársenas 3 y 4',
+              'Plantas de lodos y silos neumáticos conectados directamente por tubería a cada posición',
+              'Ecosistema concentrado de +100 contratistas internacionales de perforación y producción',
+            ],
+            infrastructureHighlightsEn: [
+              '1,450 m specialized oilfield quay across Basins 3 & 4',
+              'Shore-to-berth manifold pipelines for muds, brines, dry bulk cement/barite and MGO',
+              'Co-located ecosystem of 100+ upstream drilling, completion and marine contractors',
+            ],
+            vesselTypesServed: [
+              'Buques Estimuladores de Pozos y Cementadores',
+              'PSV / OSV Especializados en Granel Líquido y Neumático',
+              'Floteles y Barcazas de Mantenimiento Costa Afuera',
+            ],
+            vesselTypesServedEn: [
+              'Well Stimulation & Acidizing Vessels',
+              'Liquid Mud & Dry Bulk Offshore Supply Vessels (PSV/OSV)',
+              'Offshore Accommodation Barges & Workboats',
+            ],
+            connectivity:
+              'Acceso interior al Parque Industrial Laguna Azul con logística integrada hacia terminales aéreas y Dos Bocas.',
+            connectivityEn:
+              'Internal road access inside Laguna Azul Oilfield Park linking heliports and Dos Bocas corridor.',
+            operationalAdvantages: [
+              'Abastecimiento simultáneo multi-línea (lodos + barita + diésel + agua) que reduce estadía en muelle.',
+              'Capacidades técnicas de reparación naval y prefabricación de spools en el mismo complejo.',
+            ],
+            operationalAdvantagesEn: [
+              'Simultaneous multi-hose transfer (muds + barite + MGO + water) cutting berth occupancy.',
+              'On-site marine engineering, spool fabrication and emergency vessel repair.',
+            ],
+            keyClientsOrTrades: ['PEMEX Exploración y Producción', 'Cotemar', 'Halliburton', 'SLB / Naviera Integral'],
+            certifications: ['PBIP / ISPS', 'ISO 9001 / ISO 14001 / ISO 45001', 'MARPOL Anexos I–V'],
+          },
           procedures: ['Certificado de limpieza y compatibilidad para lodos base aceite y barita.'],
           restrictionsSummary: 'Calado máx. 5.2 m; estricto control MARPOL en Laguna Azul.',
           berths: [
@@ -1669,6 +2660,82 @@ export function buildAdditionalPortsData(images: {
           mapY: 38,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores', 'Granel Agrícola', 'Carga Proyecto'],
+          storageSummary: {
+            coveredSqm: 18500,
+            openYardSqm: 62000,
+            containerYardSqm: 115000,
+            warehousesBreakdown:
+              'Patio de 11.5 hectáreas en Terminal de Contenedores APM Terminals Yucatán (TEC) con tomas reefer, + silos de Granel Agrícola (Grupo Logra / Multisur) de 60,000+ MT y bodegas cubiertas para carga general y proyecto en TUM 1–3.',
+            warehousesBreakdownEn:
+              '11.5-hectare APM Terminals Yucatán Container Terminal (TEC) yard with reefer stacks + 60,000+ MT agricultural grain silos (Logra/Multisur) and covered sheds at TUM 1–3.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Plataforma Logística Offshore de Yucatán (Viaducto 6.5 km) — Contenedores APM, Granos y Proyectos',
+            positioningHeadlineEn:
+              'Yucatán Offshore Port Gateway (6.5 km Viaduct) — APM Containers, Grain Silos & Project Cargo',
+            address: 'Terminal Remota s/n, Viaducto del Muelle Fiscal Km 6.5, Progreso, Yucatán',
+            customsRegime: 'Recinto Fiscalizado Portuario (APM Terminals / Multisur / Logra) · Aduana de Progreso',
+            customsRegimeEn: 'Bonded Port Concessions (APM Terminals / Multisur / Logra) · Progreso Customs',
+            commercialServices: [
+              'Carga/descarga de contenedores FCL, LCL, reefers refrigerados y consolidación en Terminal de Contenedores (APM Terminals Yucatán)',
+              'Descarga mecanizada con almejas/succionadoras y ensilado de maíz amarillo, trigo y pasta de soya (Multisur / Logra)',
+              'Maniobras de carga proyecto (turbinas eólicas, generadores, acero estructural) y vehículos Ro-Ro hacia Yucatán y Tren Maya',
+              'Servicios de inspección fitosanitaria OISA/SENASICA y despacho aduanal integrado sobre plataforma offshore',
+            ],
+            commercialServicesEn: [
+              'FCL, LCL & reefer container stevedoring, CFS consolidation and depot services at APM Terminals Yucatán',
+              'Mechanized grain unloader/hopper discharge & silo storage for yellow corn, wheat and soymeal (Multisur/Logra)',
+              'Heavy project cargo (wind turbines, power modules, steel) and Ro-Ro handling serving Yucatán & Maya corridor',
+              'On-platform OISA/SENASICA phytosanitary inspection and integrated Progreso customs clearance',
+            ],
+            infrastructureHighlights: [
+              '1,200+ m de muelles comerciales especializados (TEC + TUM 1, 2 y 3) dentro de 2,400 m de frente en Terminal Remota',
+              'Grúas móviles portuarias de alta capacidad, reach-stackers electrificados en TEC y silos graneleros mecanizados',
+              'Conectividad directa mar-tierra mediante el viaducto marítimo de 6.5 km (el más largo del continente)',
+            ],
+            infrastructureHighlightsEn: [
+              '1,200+ m specialized commercial berths (TEC + TUM 1–3) inside Progreso’s 2,400 m Offshore Platform',
+              'Mobile harbor cranes, electrified reach-stackers at APM TEC and mechanized grain silos',
+              'Uncongested 6.5 km deep-water viaduct connecting offshore berths to Mérida industrial corridor',
+            ],
+            vesselTypesServed: [
+              'Portacontenedores Regionales y Feeders (hasta 240 m LOA)',
+              'Graneleros Panamax / Supramax / Handymax Agrícolas',
+              'Buques de Carga Proyecto / Heavy-Lift y Ro-Ro',
+            ],
+            vesselTypesServedEn: [
+              'Regional & Feeder Container Vessels (up to 240 m LOA)',
+              'Agricultural Panamax / Supramax / Handymax Bulkers',
+              'Heavy-Lift Project Cargo & Ro-Ro Carriers',
+            ],
+            connectivity:
+              'Enlace carretero de 4 carriles vía Viaducto de 6.5 km hacia Autopista Mérida–Progreso (25 min a parques industriales y enlace de carga Tren Maya).',
+            connectivityEn:
+              '4-lane 6.5 km maritime viaduct directly onto Mérida–Progreso Expressway (25 min to Mérida parks & rail hub).',
+            customsProcess: [
+              'Transmisión VUMCE y manifiesto EDI BAPLIE / lista de granos 48 h antes del arribo.',
+              'Inspección OISA / SENASICA en muelle para granos agrícolas y carga refrigerada perecedera.',
+              'Despacho automatizado PITA en garita aduanal al pie del viaducto marítimo.',
+              'Autorización previa de ASIPONA para convoyes sobredimensionados en cruce del viaducto.',
+            ],
+            customsProcessEn: [
+              'VUMCE filing and EDI BAPLIE / bulk grain manifest 48 h prior to arrival.',
+              'Dockside OISA/SENASICA phytosanitary inspection for agricultural grains and reefer perishables.',
+              'Automated PITA customs gate release at viaduct shore abutment.',
+              'ASIPONA heavy-haul escort permit for oversized project units crossing the 6.5 km viaduct.',
+            ],
+            operationalAdvantages: [
+              'Principal puerta de exportación/importación contenerizada y agroindustrial de toda la Península de Yucatán.',
+              'Aislamiento seguro de la mancha urbana gracias a la plataforma offshore en aguas abiertas.',
+            ],
+            operationalAdvantagesEn: [
+              'Primary container & agro-bulk supply gateway for Yucatán, Campeche and Quintana Roo.',
+              'Zero urban traffic bottleneck thanks to offshore island terminal layout.',
+            ],
+            keyClientsOrTrades: ['APM Terminals Yucatán', 'Grupo Logra / Multisur', 'Maersk / MSC / Hapag', 'Agroindustrias de Yucatán'],
+            certifications: ['PBIP / ISPS', 'ISO 9001 / 14001', 'SENASICA Punto de Inspección Autorizado'],
+          },
           procedures: ['Coordinar cruce de carga pesada por el viaducto de 6.5 km con ASIPONA.'],
           restrictionsSummary: 'Calado operativo 9.75 m (32 ft); 2,400 m lineales totales en recinto.',
           berths: [
@@ -1703,6 +2770,57 @@ export function buildAdditionalPortsData(images: {
           mapY: 34,
           imageType: 'pajaritos',
           cargoGroups: ['Hidrocarburos y Gas'],
+          storageSummary: {
+            coveredSqm: 800,
+            openYardSqm: 6500,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Cabezal de brazos marinos y sistema contraincendio en extremo norte de Terminal Remota enlazado por poliducto submarino/viaducto hacia Terminal de Almacenamiento Mérida.',
+            warehousesBreakdownEn:
+              'Marine loading arm manifold & fire-fighting platform at north tip of Terminal Remota linked via pipeline along viaduct to Mérida Tank Farm.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal Energética Estratégica de Combustibles para la Península de Yucatán (32 ft)',
+            positioningHeadlineEn:
+              'Strategic Hydrocarbon Jetty Supplying Refined Fuels Across the Yucatán Peninsula (32 ft)',
+            address: 'Muelle 9, Extremo Terminal Remota, Puerto de Progreso, Yucatán',
+            customsRegime: 'Terminal Especializada de Hidrocarburos · Aduana de Progreso',
+            customsRegimeEn: 'Dedicated Hydrocarbon Berth · Progreso Customs',
+            commercialServices: [
+              'Descarga por brazos marinos de Gasolina Magna/Premium, Diésel UBA, Turbosina (Jet A-1) y Combustóleo',
+              'Bombeo directo por poliducto hacia tanques de almacenamiento en tierra y distribución peninsular',
+              'Protocolos de seguridad ISGOTT, inspección SIRE y contención contraincendio dedicada',
+            ],
+            commercialServicesEn: [
+              'Marine loading-arm discharge of Motor Gasoline, ULSD Diesel, Jet A-1 and Fuel Oil',
+              'Direct pipeline transfer to onshore storage terminals serving Yucatán & Quintana Roo',
+              'Full ISGOTT terminal safety compliance, SIRE vetting and dedicated firefighting coverage',
+            ],
+            infrastructureHighlights: [
+              '280 m de longitud con calado máximo oficial de 9.75 m (32 ft)',
+              'Brazos marinos de carga/descarga 10" y 12" con paro de emergencia ESD y barreras flotantes',
+            ],
+            infrastructureHighlightsEn: [
+              '280 m dedicated dolphin jetty rated to 9.75 m (32 ft) official draft',
+              '10" & 12" marine loading arms equipped with ESD interlocks and containment booms',
+            ],
+            vesselTypesServed: ['Buques Tanque MR / Handysize de Productos Limpios y Negros (hasta 205 m LOA)'],
+            vesselTypesServedEn: ['MR / Handysize Clean & Dirty Product Tankers (up to 205 m LOA)'],
+            connectivity:
+              'Poliducto dedicado a lo largo del viaducto hacia TAD PEMEX Progreso / Mérida y red energética de CFE.',
+            connectivityEn:
+              'Dedicated multi-product pipeline along viaduct to Progreso/Mérida tank farms and CFE power plants.',
+            operationalAdvantages: [
+              'Única posición especializada para importación de petrolíferos y turbosina de la Península de Yucatán.',
+              'Aislamiento perimetral extremo respecto a áreas comerciales y turísticas del puerto.',
+            ],
+            operationalAdvantagesEn: [
+              'Sole deep-water refined fuel and Jet A-1 import berth serving the Yucatán Peninsula.',
+              'Maximum safety standoff at outer tip of the offshore platform.',
+            ],
+            certifications: ['PBIP / ISPS', 'ISGOTT / OCIMF SIRE', 'ASEA'],
+          },
           procedures: ['Vetting SIRE, checklist ISGOTT y vigilancia contraincendio continua.'],
           restrictionsSummary: 'Calado oficial máximo 9.75 m (32 ft).',
           berths: [
@@ -1737,6 +2855,58 @@ export function buildAdditionalPortsData(images: {
           mapY: 64,
           imageType: 'hero',
           cargoGroups: ['Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 9200,
+            openYardSqm: 22000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Edificio terminal internacional de pasajeros con módulos de Migración (INM) y Aduana, áreas duty-free, bahías de autobuses turísticos y zona logística de avituallamiento de cruceros.',
+            warehousesBreakdownEn:
+              'International passenger terminal building housing INM Immigration & Customs halls, duty-free retail, tour-coach staging and cruise provisioning bays.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal de Cruceros y Transbordadores (SSA México) — Puerta Turística al Mundo Maya',
+            positioningHeadlineEn:
+              'International Cruise & Ro-Pax Terminal (SSA México) — Gateway to Mérida & Mayan Sites',
+            address: 'Terminal de Cruceros, Terminal Remota Km 6.5, Progreso, Yucatán',
+            customsRegime: 'Recinto Portuario Turístico PBIP · INM / Aduana de Progreso',
+            customsRegimeEn: 'ISPS International Passenger Port · INM / Progreso Customs',
+            commercialServices: [
+              'Atraque simultáneo de megacruceros hasta 330 m LOA y transbordadores Ro-Pax del Golfo/Caribe',
+              'Gestión integral de flujo de pasajeros (hasta 4,500 pax/escala), despacho INM y aduana turística',
+              'Avituallamiento hotelero, suministro de agua potable y recepción certificada de residuos MARPOL',
+            ],
+            commercialServicesEn: [
+              'Simultaneous berthing for mega cruise vessels up to 330 m LOA and Gulf/Caribbean Ro-Pax ferries',
+              'End-to-end passenger embarkation/transit (up to 4,500 pax/call), INM immigration and customs screening',
+              'Hotel stores provisioning, potable water bunkering and certified MARPOL waste reception',
+            ],
+            infrastructureHighlights: [
+              '640 m de frente en Muelles Este/Oeste + rampa especializada Ro-Pax',
+              'Terminal de pasajeros climatizada, tienda libre de impuestos y parque de excursiones',
+            ],
+            infrastructureHighlightsEn: [
+              '640 m East/West cruise quay walls + dedicated Ro-Pax stern ramp',
+              'Air-conditioned passenger concourse, duty-free plaza and excursion coach terminal',
+            ],
+            vesselTypesServed: ['Megacruceros Internacionales (hasta 330 m LOA)', 'Transbordadores Ro-Pax / Fast Ferries'],
+            vesselTypesServedEn: ['Mega Cruise Ships (up to 330 m LOA)', 'Ro-Pax & Fast Ferries'],
+            connectivity:
+              'Acceso directo por viaducto hacia Mérida, Chichén Itzá, Uxmal y red hotelera de Yucatán.',
+            connectivityEn:
+              'Direct viaduct dispatch toward Mérida, Chichén Itzá, Uxmal and Yucatán resorts.',
+            operationalAdvantages: [
+              'Atención prioritaria garantizada conforme al calendario anual de líneas navieras de crucero.',
+              'Operación dual cruceros + carga Ro-Pax de abastecimiento peninsular.',
+            ],
+            operationalAdvantagesEn: [
+              'Guaranteed berth windows aligned with annual international cruise line schedules.',
+              'Dual cruise tourism and Gulf Ro-Pax supply connectivity.',
+            ],
+            keyClientsOrTrades: ['Carnival Cruise Line', 'Royal Caribbean', 'Disney Cruise Line', 'Operadores Ro-Pax'],
+            certifications: ['PBIP / ISPS Nivel 1/2', 'Sanidad Internacional / Libre Plática'],
+          },
           procedures: ['Protocolo PBIP/ISPS Nivel 1/2 y despacho migratorio INM en terminal.'],
           restrictionsSummary: 'Eslora máx. cruceros hasta 330 m; calado 9.75 m.',
           berths: [
@@ -1920,6 +3090,78 @@ export function buildAdditionalPortsData(images: {
           mapY: 36,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 28000,
+            openYardSqm: 140000,
+            containerYardSqm: 480000,
+            warehousesBreakdown:
+              'Más de 48 ha de patios contenerizados en TEC I (SSA México) + Hutchison TIMSA con capacidad estática superior a 33,000 TEUs, >1,000 tomas reefer, Recinto Fiscalizado Estratégico (RFE) y bodegas CFS.',
+            warehousesBreakdownEn:
+              '48+ ha of container yards across TEC I (SSA México) & Hutchison TIMSA offering >33,000 TEU static capacity, 1,000+ reefer plugs, Strategic Bonded Zone (RFE) and CFS sheds.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Complejo Líder del Pacífico (TEC I SSA México & Hutchison TIMSA) — +1.5M TEUs/Año y Ferrocarril On-Dock',
+            positioningHeadlineEn:
+              'Flagship Manzanillo Container Hub (SSA TEC I & TIMSA) — 1.5M+ TEUs/Yr & On-Dock Double-Stack Rail',
+            address: 'Av. Teniente Azueta s/n, Col. Burócrata, Puerto Interior San Pedrito, Manzanillo, Colima',
+            customsRegime: 'Recinto Fiscalizado y Recinto Fiscalizado Estratégico (RFE) · Aduana de Manzanillo',
+            customsRegimeEn: 'Bonded Port Concessions & Strategic Fiscal Zone (RFE) · Manzanillo Customs',
+            commercialServices: [
+              'Estiba/desestiba de contenedores FCL/LCL de gran volumen con >16 grúas Súper Post-Panamax (35–42 mov/h)',
+              'Cadena de frío de alta densidad con >1,000 tomas reefer e inspecciones OISA / SENASICA / COFEPRIS in-situ',
+              'Despacho multimodal en espuelas ferroviarias on-dock Ferromex hacia Guadalajara, Bajío y Valle de México',
+              'Servicios de desconsolidación CFS, manejo de mercancía sobredimensionada OOG, acero y carga general (TIMSA)',
+            ],
+            commercialServicesEn: [
+              'High-velocity FCL/LCL container operations with 16+ Super Post-Panamax STS cranes (35–42 mph)',
+              'High-density cold chain with 1,000+ reefer plugs and dockside OISA/SENASICA/COFEPRIS inspection halls',
+              'On-dock Ferromex double-stack intermodal rail dispatch to Guadalajara, Bajío & Mexico City',
+              'CFS deconsolidation, Out-of-Gauge (OOG) project lifts, steel coils and multipurpose cargo at TIMSA',
+            ],
+            infrastructureHighlights: [
+              '1,450+ m de frente de atraque conjunto con esloras hasta 366 m LOA y 13.5 m de calado operativo',
+              'Ecosistema integrado por 16+ grúas STS, flota RTG electrificada y espuelas ferroviarias dentro del recinto',
+              'Respaldo del Recinto Fiscalizado Estratégico (RFE) para almacenamiento diferido de impuestos y valor agregado',
+            ],
+            infrastructureHighlightsEn: [
+              '1,450+ m combined quay accommodating 366 m LOA vessels at 13.5 m operational draft',
+              '16+ Super Post-Panamax STS cranes, RTG blocks and multi-track on-dock rail sidings',
+              'Strategic Bonded Zone (RFE) enabling tax-deferred warehousing and distribution',
+            ],
+            vesselTypesServed: [
+              'Portacontenedores Post-Panamax y New-Panamax (hasta 14,000 TEUs / 366 m LOA)',
+              'Buques Multipropósito / Carga General / Heavy-Lift (TIMSA)',
+            ],
+            vesselTypesServedEn: [
+              'Post-Panamax & New-Panamax Container Ships (up to 14,000 TEU / 366 m LOA)',
+              'Multipurpose Breakbulk & Heavy-Lift Carriers (TIMSA)',
+            ],
+            connectivity:
+              'Conexión ferroviaria on-dock directa de Ferromex (Manzanillo–Guadalajara–Irapuato–CDMX–El Paso) + Autopista de cuota 54D Manzanillo–Guadalajara.',
+            connectivityEn:
+              'Direct Ferromex on-dock rail corridor (Manzanillo–Guadalajara–Bajío–CDMX) + 4-lane Toll Hwy 54D.',
+            customsProcess: [
+              'Transmisión electrónica VUCEM, manifiesto EDI BAPLIE y programación de citas digitales de transporte 24 h antes.',
+              'Reconocimiento aduanero automatizado PITA y plataforma única de inspección agrícola/sanitaria en terminal.',
+              'Programación de salida en tren intermodal directo o despacho carretero con lector RFID/OCR en garita.',
+            ],
+            customsProcessEn: [
+              'VUCEM electronic manifest, EDI BAPLIE and digital truck appointment booking 24 h pre-arrival.',
+              'PITA automated customs inspection and unified OISA/COFEPRIS examination bays.',
+              'Intermodal rail release or OCR/RFID-automated road gate exit.',
+            ],
+            operationalAdvantages: [
+              'Mayor ecosistema logístico, aduanal y de transporte contenerizado del país (Manzanillo ~4M TEUs totales).',
+              'Alta frecuencia de recaladas semanales directas Transpacífico desde Asia y Costa Oeste.',
+            ],
+            operationalAdvantagesEn: [
+              'Anchored within Mexico’s largest container hub (~4M TEUs portwide) with unmatched logistics density.',
+              'Highest weekly frequency of direct Transpacific Asia–Mexico liner loops.',
+            ],
+            keyClientsOrTrades: ['SSA México', 'Hutchison Ports TIMSA', 'MSC / Maersk / CMA CGM / COSCO', 'Ferromex'],
+            certifications: ['PBIP / ISPS', 'OEA (Operador Económico Autorizado)', 'C-TPAT', 'ISO 9001 / 14001 / 28000'],
+          },
           procedures: ['Ventana fija semanal y transmisión EDI BAPLIE 24 h previas.'],
           restrictionsSummary: 'Calado diseño -14.5 m; calado op. 13.0 – 13.5 m (Súper Post-Panamax).',
           berths: [
@@ -1954,6 +3196,78 @@ export function buildAdditionalPortsData(images: {
           mapY: 30,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 14000,
+            openYardSqm: 45000,
+            containerYardSqm: 720000,
+            warehousesBreakdown:
+              'Más de 72 hectáreas desarrolladas en Zona Norte de San Pedrito (ICTSI Contecon Manzanillo) con bloques automatizados de contenedores, zona reefer ampliada (+1,000 tomas), almacén de inspección aduanal y patio ferroviario intermodal.',
+            warehousesBreakdownEn:
+              '72+ hectares in Northern San Pedrito (ICTSI Contecon Manzanillo) featuring semi-automated RTG container blocks, 1,000+ reefer plugs, customs exam warehouse and on-dock rail yard.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal de Aguas Profundas TEC II (Contecon ICTSI) — Calado hasta 15.5 m para Megabuques ULCS',
+            positioningHeadlineEn:
+              'Deep-Water TEC II Container Terminal (Contecon ICTSI) — 15.5 m Draft for Megamax / ULCS Pacific Calls',
+            address: 'Zona Norte Puerto Interior San Pedrito s/n, Manzanillo, Colima',
+            customsRegime: 'Recinto Fiscalizado Privado (Contecon Manzanillo / ICTSI) · Aduana de Manzanillo',
+            customsRegimeEn: 'Bonded Private Concession (Contecon Manzanillo / ICTSI) · Manzanillo Customs',
+            commercialServices: [
+              'Atención a buques portacontenedores de última generación (ULCS / Megamax hasta 366+ m y 15.5 m calado)',
+              'Productividad de 36–44 mov/hora por grúa con 10+ grúas STS de alcance hasta 24 filas de contenedores',
+              'Almacenaje y monitoreo inteligente de carga refrigerada reefer e inspecciones aduanales/fitosanitarias in-situ',
+              'Integración ferroviaria directa y portal digital autónomo de citas, pagos y liberación aduanal',
+            ],
+            commercialServicesEn: [
+              'Ultra-Large Container Ship (ULCS/Megamax) berthing up to 366+ m LOA and 15.5 m authorized draft',
+              'High-speed 36–44 mph crane productivity with 10+ 24-row Super Post-Panamax STS cranes',
+              'Smart reefer monitoring, dangerous goods (IMDG) segregation and dockside customs/OISA exam facility',
+              'Direct on-dock rail blocks and 100% digital gate/appointment/billing portal',
+            ],
+            infrastructureHighlights: [
+              '1,080 m de muelle en aguas profundas (-16.5 m pie de muelle / Dársena Norte -17.0 m)',
+              'Capacidad anual superior a 1.5 – 1.7 millones de TEUs dentro de la expansión Zona Norte',
+              '10 grúas Pórtico Súper Post-Panamax y bloques RTG de alta densidad con vía férrea intermodal',
+            ],
+            infrastructureHighlightsEn: [
+              '1,080 m deep-water berth wall (-16.5 m alongside / North Turning Basin -17.0 m)',
+              'Over 1.5–1.7M TEUs annual throughput capacity in Manzanillo North Zone',
+              '10 Super Post-Panamax STS cranes + high-density RTG stacks and on-dock rail tracks',
+            ],
+            vesselTypesServed: [
+              'Megabuques Portacontenedores ULCS / New-Panamax (hasta 15,000+ TEUs)',
+              'Buques con Carga Proyecto Sobredimensionada (OOG) bajo grúa pórtico',
+            ],
+            vesselTypesServedEn: [
+              'Ultra-Large / New-Panamax Container Vessels (15,000+ TEUs)',
+              'Oversized Out-of-Gauge (OOG) Project Cargo under STS cranes',
+            ],
+            connectivity:
+              'Vías férreas Ferromex dentro de Zona Norte + libramiento carretero norte de Manzanillo sin cruce por centro urbano.',
+            connectivityEn:
+              'On-dock Ferromex intermodal sidings + northern Manzanillo freight bypass avoiding downtown traffic.',
+            customsProcess: [
+              'Registro electrónico en plataforma Contecon Digital + VUCEM y BAPLIE 48 h previas al arribo.',
+              'Despacho sin papeles en garita automática OCR/RFID y módulo único de reconocimiento aduanero.',
+              'Traslado ferroviario en bloque hacia terminales interiores de Guadalajara, Silao y Pantaco CDMX.',
+            ],
+            customsProcessEn: [
+              'Electronic pre-registration on Contecon portal + VUCEM & BAPLIE 48 h pre-ETA.',
+              'Paperless OCR/RFID automated truck gate and integrated customs/OISA inspection bay.',
+              'Scheduled block-train dispatch to Guadalajara, Bajío and Mexico City inland ramps.',
+            ],
+            operationalAdvantages: [
+              'Mayor calado autorizado para portacontenedores en San Pedrito (hasta 15.5 m) evitando alijos en Asia.',
+              'Ruta logística norte con tiempos ágiles de ingreso y salida de autotransporte pesado.',
+            ],
+            operationalAdvantagesEn: [
+              'Deepest container berth draft in San Pedrito (15.5 m) maximizing Pacific vessel load factors.',
+              'North bypass highway access cutting truck turnaround times.',
+            ],
+            keyClientsOrTrades: ['ICTSI Contecon', 'CMA CGM / COSCO / ONE / Hapag-Lloyd / Evergreen', 'Ferromex'],
+            certifications: ['PBIP / ISPS', 'OEA', 'ISO 9001 / 14001 / 45001', 'Clean Port'],
+          },
           procedures: ['Registro en plataforma digital Contecon + VUMCE 48 h previas.'],
           restrictionsSummary: 'Dársena Norte -17.0 m; calado autorizado hasta 15.2 – 15.5 m.',
           berths: [
@@ -1988,6 +3302,68 @@ export function buildAdditionalPortsData(images: {
           mapY: 62,
           imageType: 'pajaritos',
           cargoGroups: ['Granel Mineral', 'Granel Agrícola', 'Hidrocarburos y Gas'],
+          storageSummary: {
+            coveredSqm: 54000,
+            openYardSqm: 135000,
+            containerYardSqm: 30000,
+            warehousesBreakdown:
+              'Domos y bodegas herméticas de mineral (Hazesa) para concentrados de hierro/cobre/zinc, silos mecanizados para granel agrícola (Grupo Ocupa / Comercializadora La Junta), patios de carga general y granjas de tanques PEMEX.',
+            warehousesBreakdownEn:
+              'Enclosed mineral storage domes (Hazesa) for iron/copper/zinc concentrates, mechanized agricultural grain silos (Ocupa), general cargo yards and PEMEX refined fuel tank farms.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Ecosistema de Graneles Minerales (Hazesa), Agrícolas (Ocupa), Cruceros y Combustibles PEMEX',
+            positioningHeadlineEn:
+              'Dry Mineral Bulk (Hazesa), Grain (Ocupa), Cruise & PEMEX Energy Terminals in San Pedrito',
+            address: 'Recinto Portuario San Pedrito Sur / Banda B, Manzanillo, Colima',
+            customsRegime: 'Cesionarios Fiscalizados Especializados (Hazesa · Ocupa · PEMEX) · Aduana de Manzanillo',
+            customsRegimeEn: 'Specialized Bonded Terminal Concessions (Hazesa · Ocupa · PEMEX) · Manzanillo Customs',
+            commercialServices: [
+              'Carga de exportación de mineral de hierro, concentrados de cobre/zinc y descarga de coque/fertilizantes (Hazesa)',
+              'Descarga mecanizada de maíz, trigo, soya, canola y manejo de acero, automóviles y contenedores (Ocupa)',
+              'Recepción de gasolinas, diésel y combustóleo por brazos marinos en muelles petroleros PEMEX Logística',
+              'Atención turística ocasional en posición de cruceros del recinto centro de Manzanillo',
+            ],
+            commercialServicesEn: [
+              'Bulk export ship-loading of iron ore, copper/zinc concentrates and petcoke/fertilizer import (Hazesa)',
+              'Mechanized agri-bulk discharge (corn, wheat, soy) plus steel, breakbulk and container support (Ocupa)',
+              'Pipeline reception of gasoline, diesel and fuel oil via marine loading arms at PEMEX jetties',
+              'Cruise ship berthing support at Manzanillo downtown cruise quay',
+            ],
+            infrastructureHighlights: [
+              '920 m lineales combinados con bandas cargadoras telescópicas de mineral de 10,000–15,000 MT/día',
+              'Almacenaje hermético anti-emisión de polvos (domos minerales) + silos agrícolas y básculas certificadas',
+              'Espuelas ferroviarias y poliducto PEMEX Manzanillo–Guadalajara directamente enlazados',
+            ],
+            infrastructureHighlightsEn: [
+              '920 m combined quay equipped with telescopic shiploaders rated 10,000–15,000 MT/day',
+              'Environmentally sealed mineral domes + grain silos and certified rail/truck weighbridges',
+              'Direct rail sidings and PEMEX Manzanillo–Guadalajara multi-product pipeline tie-in',
+            ],
+            vesselTypesServed: [
+              'Graneleros Supramax / Panamax / Handymax Minerales y Agrícolas',
+              'Buques Tanque MR / Handysize de Combustibles PEMEX',
+            ],
+            vesselTypesServedEn: [
+              'Supramax / Panamax / Handymax Mineral & Grain Bulkers',
+              'MR / Handysize Refined Hydrocarbon Tankers',
+            ],
+            connectivity:
+              'Enlace ferroviario Ferromex hacia distritos mineros de Michoacán/Colima/Jalisco y corredor industrial del Bajío; poliducto hacia Guadalajara.',
+            connectivityEn:
+              'Ferromex rail links to Colima/Michoacán/Jalisco mining belts & Bajío; PEMEX pipeline to Guadalajara.',
+            operationalAdvantages: [
+              'Principal nodo exportador de mineral de hierro y concentrados metálicos del Pacífico Central mexicano.',
+              'Operación simultánea de minerales, granos y energéticos dentro de dársena protegida.',
+            ],
+            operationalAdvantagesEn: [
+              'Primary Central Pacific export gateway for Mexican iron ore and metallic concentrates.',
+              'Protected inner-basin operations covering bulk minerals, grains and refined fuels.',
+            ],
+            keyClientsOrTrades: ['Terminal Hazesa', 'Grupo Ocupa', 'PEMEX Logística', 'Ternium / ArcelorMittal / Mineras'],
+            certifications: ['PBIP / ISPS', 'ISO 9001 / 14001', 'IMSBC Code / TML Compliance'],
+          },
           procedures: ['Certificado TML (Transportable Moisture Limit) para concentrados minerales; SIRE en PEMEX.'],
           restrictionsSummary: 'Calados entre 11.5 m y 14.0 m según posición.',
           berths: [
@@ -2022,6 +3398,60 @@ export function buildAdditionalPortsData(images: {
           mapY: 66,
           imageType: 'channel',
           cargoGroups: ['Hidrocarburos y Gas'],
+          storageSummary: {
+            coveredSqm: 2400,
+            openYardSqm: 85000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Dos tanques criogénicos de contención total de 150,000 m³ c/u (300,000 m³ totales) a -162 °C, tren de vaporización de 500 MMpcd y subestación de control en Laguna de Cuyutlán.',
+            warehousesBreakdownEn:
+              'Two 150,000 m³ full-containment cryogenic LNG tanks (300,000 m³ total) at -162 °C, 500 MMscfd regasification train and control station in Laguna de Cuyutlán.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal Criogénica de Regasificación GNL Manzanillo (KMS: KOGAS · Mitsui · Samsung) — 500 MMpcd',
+            positioningHeadlineEn:
+              'Manzanillo LNG Cryogenic Regasification Terminal (KMS: KOGAS · Mitsui · Samsung) — 500 MMscfd',
+            address: 'Laguna de Cuyutlán, Polígono Energético Sur, Manzanillo, Colima',
+            customsRegime: 'Terminal Marítima Energética Especializada (CRE / ASEA) · Aduana de Manzanillo',
+            customsRegimeEn: 'Dedicated Cryogenic LNG Import Terminal (CRE / ASEA) · Manzanillo Customs',
+            commercialServices: [
+              'Descarga criogénica de Gas Natural Licuado (GNL) a -162 °C mediante 4 brazos marinos articulados (10,000–12,000 m³/h)',
+              'Almacenamiento criogénico de 300,000 m³ y regasificación continua de hasta 500 MMpcd para generación eléctrica de CFE',
+              'Inyección directa al Gasoducto Manzanillo–Guadalajara y nodo occidental del SISTRANGAS',
+            ],
+            commercialServicesEn: [
+              'Cryogenic LNG unloading at -162 °C via 4 marine loading arms at 10,000–12,000 m³/h',
+              '300,000 m³ cryogenic storage and up to 500 MMscfd sendout supplying CFE power generation',
+              'Direct injection into Manzanillo–Guadalajara Gas Pipeline and western SISTRANGAS grid',
+            ],
+            infrastructureHighlights: [
+              'Muelle criogénico dedicado de 360 m para metaneros Q-Flex / Moss / Membrane hasta 295 m LOA y 14.0 m calado',
+              'Canal de acceso independiente (-16.5 m) y dársena exclusiva separada del tráfico comercial de San Pedrito',
+              'Rompeolas de protección y zona de seguridad marítima vigilada con 3–4 remolcadores de escolta',
+            ],
+            infrastructureHighlightsEn: [
+              '360 m dedicated LNG jetty handling carriers up to 295 m LOA / 14.0 m operational draft',
+              'Independent -16.5 m approach channel isolated from San Pedrito container traffic',
+              'Breakwater protection and strict exclusion zone enforced with 3–4 escort tugs',
+            ],
+            vesselTypesServed: ['Buques Metaneros Criogénicos GNL (138,000 – 217,000 m³)'],
+            vesselTypesServedEn: ['Cryogenic LNG Carriers (138,000 – 217,000 m³)'],
+            connectivity:
+              'Gasoducto de alta presión Manzanillo–Colima–Guadalajara abasteciendo centrales termoeléctricas de CFE e industria de Occidente.',
+            connectivityEn:
+              'High-pressure Manzanillo–Colima–Guadalajara pipeline feeding CFE power plants and Western Mexico industry.',
+            operationalAdvantages: [
+              'Elimina interferencia con maniobras contenerizadas de San Pedrito al contar con acceso propio en Cuyutlán.',
+              'Operación bajo los más altos estándares internacionales SIGTTO / OCIMF.',
+            ],
+            operationalAdvantagesEn: [
+              'Zero berth congestion from container terminals thanks to dedicated Cuyutlán channel.',
+              'Operated strictly under international SIGTTO / OCIMF LNG safety standards.',
+            ],
+            keyClientsOrTrades: ['Terminal KMS de GNL', 'CFEnergía / CFE', 'KOGAS / Mitsui / Samsung'],
+            certifications: ['SIGTTO Compliance', 'PBIP / ISPS', 'CRE / ASEA', 'ISO 9001 / 14001 / 45001'],
+          },
           procedures: ['Protocolo SIGTTO, escolta de 3–4 remolcadores y zona de exclusión marítima.'],
           restrictionsSummary: 'Atraque y desatraque diurno exclusivo.',
           berths: [
@@ -2159,6 +3589,78 @@ export function buildAdditionalPortsData(images: {
           mapY: 46,
           imageType: 'hero',
           cargoGroups: ['Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 7800,
+            openYardSqm: 26000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Edificio terminal internacional de pasajeros con salas de migración INM, aduana turística, comercios libres de impuestos, muelle de taxis acuáticos/tours y parque de transporte terrestre.',
+            warehousesBreakdownEn:
+              'International cruise passenger concourse housing INM immigration, customs screening, duty-free retail, local excursion marina dock and coach staging plaza.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal Marítima de Cruceros Puerto Vallarta — 3 Posiciones Simultáneas (>300 m LOA) y Escala Riviera Mexicana',
+            positioningHeadlineEn:
+              'Puerto Vallarta International Cruise Terminal — 3 Simultaneous Mega-Berths (>300 m LOA)',
+            address: 'Blvd. Francisco Medina Ascencio Km 4.5, Zona Hotelera Norte, Puerto Vallarta, Jalisco',
+            customsRegime: 'Recinto Portuario Internacional de Pasaje PBIP · Aduana de Puerto Vallarta / INM',
+            customsRegimeEn: 'ISPS International Cruise Port · Puerto Vallarta Customs & INM Immigration',
+            commercialServices: [
+              'Atraque simultáneo hasta para 3 megacruceros internacionales (>300 m LOA) en Muelles 1, 2 y 3 (+ capacidad hasta ~1.7M pax/año)',
+              'Operación Home Port / Embarque y desembarque parcial de pasajeros en conectividad aérea PVR',
+              'Avituallamiento fresco/seco hotelero, suministro de agua potable, cambio de tripulación y recepción MARPOL',
+              'Logística de excursiones certificadas, seguridad PBIP y coordinación de tender operations en fondeo cuando aplica',
+            ],
+            commercialServicesEn: [
+              'Simultaneous berthing for up to 3 mega cruise ships (>300 m LOA) across Berths 1–3 (annual capacity ~1.7M pax)',
+              'Home Port turnarounds & partial embarkation leveraging Puerto Vallarta International Airport (3 km)',
+              'Hotel food & beverage provisioning, potable water supply, crew changes and certified MARPOL waste reception',
+              'Certified shore excursion coach dispatch, ISPS security and Bay of Banderas tender coordination',
+            ],
+            infrastructureHighlights: [
+              '940 m totales en 3 posiciones internacionales (hasta 335 m LOA / 10.2 m calado) + dársena turística local',
+              'Conectividad aeroportuaria de 5 minutos (Aeropuerto Internacional PVR a 3 km)',
+              'Separación reglamentaria total entre canal de aproximación de cruceros y embarcaciones menores',
+            ],
+            infrastructureHighlightsEn: [
+              '940 m quay across 3 international berths (up to 335 m LOA / 10.2 m draft) + local excursion piers',
+              '5-minute transfer to PVR International Airport (3 km)',
+              'Strict traffic separation between mega-cruise channel and recreational craft',
+            ],
+            vesselTypesServed: [
+              'Megacruceros Internacionales (Royal Caribbean, Carnival, Princess, Norwegian, Holland America)',
+              'Embarcaciones Turísticas Locales y Cabotaje de Pasaje',
+            ],
+            vesselTypesServedEn: [
+              'International Mega Cruise Liners (Royal Caribbean, Carnival, Princess, NCL, HAL)',
+              'Local Bay Excursion & Coastal Passenger Vessels',
+            ],
+            connectivity:
+              'Sobre Blvd. Francisco Medina Ascencio (Zona Hotelera Norte), a 3 km del Aeropuerto Internacional PVR y 10 min del Centro Histórico.',
+            connectivityEn:
+              'Directly on Blvd. Medina Ascencio (North Hotel Zone), 3 km from PVR International Airport.',
+            customsProcess: [
+              'Envío vía VUMCE de Declaración Marítima de Sanidad y manifiestos de pasaje/tripulación 48 h previas.',
+              'Otorgamiento de Libre Plática y despacho migratorio INM a bordo o en salas de terminal.',
+              'Control aduanal de provisiones de barco (avituallamiento) y equipaje de Home Port.',
+            ],
+            customsProcessEn: [
+              'VUMCE filing of Maritime Health Declaration and crew/passenger manifests 48 h prior to arrival.',
+              'International Health Free Pratique and INM immigration clearance.',
+              'Customs supervision of ship hotel stores and Home Port passenger baggage.',
+            ],
+            operationalAdvantages: [
+              'Puerto emblemático de la ruta "Mexican Riviera" con 3 muelles simultáneos protegidos.',
+              'Cercanía récord entre muelle, zona hotelera y aeropuerto internacional para Home Porting y crew changes.',
+            ],
+            operationalAdvantagesEn: [
+              'Anchor marquee stop of the Mexican Riviera itinerary with 3 simultaneous sheltered berths.',
+              'Unmatched 3 km port-to-airport proximity ideal for Home Port operations and crew changes.',
+            ],
+            keyClientsOrTrades: ['Royal Caribbean', 'Carnival Cruise Line', 'Princess Cruises', 'Norwegian Cruise Line'],
+            certifications: ['PBIP / ISPS Nivel 1', 'Sanidad Internacional / Libre Plática', 'Puerto Verde'],
+          },
           procedures: ['Despacho migratorio INM, Sanidad Internacional y lista de tripulantes/pasajeros 48 h previas.'],
           restrictionsSummary: '3 posiciones simultáneas para buques > 300 m LOA; calado máx. 10.2 m.',
           berths: [
@@ -2332,6 +3834,78 @@ export function buildAdditionalPortsData(images: {
           mapY: 40,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores', 'Carga Proyecto'],
+          storageSummary: {
+            coveredSqm: 12500,
+            openYardSqm: 48000,
+            containerYardSqm: 145000,
+            warehousesBreakdown:
+              'Patio contenerizado de 14.5 ha en Hutchison Ports EIT (TUM 2) con capacidad superior a 400,000 TEUs/año, tomas reefer refrigeradas, almacén fiscalizado para desconsolidación CFS e inspecciones OISA / Aduana.',
+            warehousesBreakdownEn:
+              '14.5 ha Hutchison Ports EIT container yard (TUM 2) with 400,000+ TEU/year capacity, reefer stacks, CFS customs exam shed and OISA inspection bays.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Ensenada International Terminal (Hutchison EIT · TUM 2) — Puerta Contenerizada de Baja California',
+            positioningHeadlineEn:
+              'Ensenada International Terminal (Hutchison EIT · TUM 2) — Baja California Deep-Water Gateway',
+            address: 'Blvd. Teniente Azueta 224, Recinto Portuario, Ensenada, Baja California',
+            customsRegime: 'Recinto Fiscalizado Privado (Hutchison Ports EIT) · Aduana de Ensenada',
+            customsRegimeEn: 'Bonded Private Container Concession (Hutchison Ports EIT) · Ensenada Customs',
+            commercialServices: [
+              'Estiba de contenedores FCL/LCL y carga refrigerada reefer de exportación agroindustrial de Baja California (berries, hortalizas, vino, atún)',
+              'Atención a portacontenedores hasta 350 m LOA y 14.50 m de calado en TUM 2 (+ TUM 1 multipropósito)',
+              'Maniobras de carga proyecto, acero, maquinaria para industria maquiladora de Tijuana / Mexicali y carga general',
+              'Servicios CFS de consolidación/desconsolidación e inspección fitosanitaria OISA / SENASICA en terminal',
+            ],
+            commercialServicesEn: [
+              'FCL/LCL & reefer container handling serving Baja California agro-exports (berries, produce, seafood, wine)',
+              'Container ship berthing up to 350 m LOA and 14.50 m draft at TUM 2 (+ TUM 1 multipurpose quay)',
+              'Project cargo, steel and industrial equipment handling for Tijuana / Mexicali maquiladora plants',
+              'CFS warehousing, devanning and dockside OISA / SENASICA cold-chain inspection',
+            ],
+            infrastructureHighlights: [
+              '600 m de muelle en aguas profundas (-15.7 m pie de muelle; calado operativo 14.50 m en TUM 2)',
+              'Grúas Pórtico Súper Post-Panamax, grúas RTG y plataforma digital E-Port de Hutchison',
+              'Capacidad portuaria superior a 430,000 TEUs integrando corredor marítimo alternativo al sur de California',
+            ],
+            infrastructureHighlightsEn: [
+              '600 m deep-water quay (-15.7 m alongside; 14.50 m authorized draft at TUM 2)',
+              'Super Post-Panamax STS cranes, RTG blocks and Hutchison digital E-Port portal',
+              'Portwide capacity >430,000 TEUs offering a direct transpacific alternative south of LA/Long Beach',
+            ],
+            vesselTypesServed: [
+              'Portacontenedores Post-Panamax y Feeders Transpacífico (hasta 350 m LOA)',
+              'Buques Multipropósito / Carga General / Heavy-Lift (TUM 1 y TUM 2)',
+            ],
+            vesselTypesServedEn: [
+              'Post-Panamax & Transpacific Feeder Container Ships (up to 350 m LOA)',
+              'Multipurpose General Cargo & Heavy-Lift Ships (TUM 1 & TUM 2)',
+            ],
+            connectivity:
+              'Autopista Escénica Tijuana–Ensenada (Fed. 1D) conectando en 90 min con parques maquiladores de Tijuana, Tecate, Mexicali y cruces fronterizos hacia California.',
+            connectivityEn:
+              'Fed. 1D Scenic Highway linking in 90 min to Tijuana, Tecate, Mexicali maquiladora corridors and US-California border ports.',
+            customsProcess: [
+              'Transmisión VUMCE y archivo EDI BAPLIE 24–48 h previas al atraque.',
+              'Despacho automatizado PITA en Aduana de Ensenada + inspección OISA para productos perecederos.',
+              'Tránsito carretero seguro hacia recintos industriales IMMEX en Tijuana y Mexicali.',
+            ],
+            customsProcessEn: [
+              'VUMCE filing and EDI BAPLIE 24–48 h prior to berth.',
+              'Automated PITA customs release at Ensenada Customs + OISA cold-chain inspection.',
+              'Bonded IMMEX truck corridor dispatch to Tijuana and Mexicali manufacturing clusters.',
+            ],
+            operationalAdvantages: [
+              'Alternativa estratégica libre de congestión portuaria del sur de California para la manufactura de Baja California.',
+              'Calado profundo de 14.50 m que permite recaladas directas Asia–Ensenada.',
+            ],
+            operationalAdvantagesEn: [
+              'Congestion-free alternative to Southern California gateways for Baja California manufacturing.',
+              '14.50 m deep-water capability enabling direct Asia–Ensenada mainline calls.',
+            ],
+            keyClientsOrTrades: ['Hutchison Ports EIT', 'Maersk / CMA CGM / MSC / Hapag', 'Industria IMMEX Baja California'],
+            certifications: ['PBIP / ISPS', 'OEA', 'C-TPAT', 'ISO 9001 / 14001 / 45001'],
+          },
           procedures: ['EDI BAPLIE 24 h previas; cumplimiento VUMCE 48 h.'],
           restrictionsSummary: 'Calado máx. 14.50 m · Eslora máx. 350 m LOA.',
           berths: [
@@ -2366,6 +3940,66 @@ export function buildAdditionalPortsData(images: {
           mapY: 50,
           imageType: 'hero',
           cargoGroups: ['Granel Mineral', 'Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 11000,
+            openYardSqm: 95000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Patios minerales de gran volumen para mineral de hierro y cemento/clinker en Posiciones ASIPONA 1 y 2 + complejo turístico internacional Ensenada Cruiseport Village (ECV1 y ECV2) con edificio de pasajeros y explanada de excursiones.',
+            warehousesBreakdownEn:
+              'High-volume iron ore & cement bulk yards serving ASIPONA Berths 1 & 2 + Ensenada Cruiseport Village (ECV1 & ECV2) international passenger terminal and excursion plaza.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Muelles Públicos ASIPONA 1 y 2 (Granel Mineral / Cemento) & Cruceros ECV1 / ECV2 (2° Puerto del País)',
+            positioningHeadlineEn:
+              'ASIPONA Mineral Berths 1 & 2 (Iron Ore / Cement) & ECV1/ECV2 Cruise Terminal (#2 Cruise Port in Mexico)',
+            address: 'Blvd. Costero Lázaro Cárdenas s/n, Zona Centro, Ensenada, Baja California',
+            customsRegime: 'Recinto Fiscal ASIPONA Ensenada y Terminal Turística ECV (Hutchison) · Aduana de Ensenada',
+            customsRegimeEn: 'ASIPONA Ensenada Fiscal Quay & ECV Cruise Terminal · Ensenada Customs',
+            commercialServices: [
+              'Embarque mecanizado de mineral de hierro, cobre, cemento y clinker en ASIPONA 1 (13.00 m) y ASIPONA 2 (7.50 m)',
+              'Atención anual líder de cruceros internacionales de California en ECV1 y ECV2 (2° puerto receptor de México)',
+              'Servicios de suministro de agua potable, avituallamiento, manejo de equipaje, migración INM y recepción MARPOL',
+            ],
+            commercialServicesEn: [
+              'Mechanized ship-loading of iron ore, copper, cement and clinker at ASIPONA 1 (13.00 m) & ASIPONA 2 (7.50 m)',
+              'Year-round California–Baja cruise turnaround & transit calls at ECV1/ECV2 (Mexico’s #2 cruise port)',
+              'Potable water bunkering, hotel provisioning, baggage handling, INM clearance and MARPOL reception',
+            ],
+            infrastructureHighlights: [
+              '860 m de frente combinado: ASIPONA 1 (13.00 m), ASIPONA 2 (7.50 m) y ECV1/ECV2 (9.50–10.00 m)',
+              'Bandas cargadoras de mineral a 8,000–12,000 MT/día en ASIPONA 1',
+              'Terminal de cruceros Ensenada Cruiseport Village con capacidad para megacruceros >300 m LOA',
+            ],
+            infrastructureHighlightsEn: [
+              '860 m combined quay: ASIPONA 1 (13.00 m), ASIPONA 2 (7.50 m) & ECV1/ECV2 (9.50–10.00 m)',
+              'Conveyor shiploaders operating at 8,000–12,000 MT/day at ASIPONA 1',
+              'Ensenada Cruiseport Village accommodating mega-liners >300 m LOA starboard-alongside',
+            ],
+            vesselTypesServed: [
+              'Graneleros Supramax / Handymax Minerales',
+              'Megacruceros Internacionales (Carnival, Royal Caribbean, Princess, Disney)',
+            ],
+            vesselTypesServedEn: [
+              'Supramax / Handymax Mineral Bulkers',
+              'International Mega Cruise Ships (Carnival, Royal Caribbean, Princess, Disney)',
+            ],
+            connectivity:
+              'Acceso directo al corredor mineral del Pacífico Norte y vialidad turística hacia Ruta del Vino (Valle de Guadalupe).',
+            connectivityEn:
+              'Direct bulk haul access and tourist corridor to Valle de Guadalupe wine country & Tijuana.',
+            operationalAdvantages: [
+              'Segundo puerto de cruceros más visitado de México gracias a itinerarios semanales desde Los Ángeles / San Diego.',
+              'Calado de 13.00 m en ASIPONA 1 para exportación competitiva de mineral hacia Asia.',
+            ],
+            operationalAdvantagesEn: [
+              'Mexico’s second-busiest cruise port anchored by year-round Los Angeles/San Diego loops.',
+              '13.00 m bulk berth depth supporting competitive Pacific iron-ore exports to Asia.',
+            ],
+            keyClientsOrTrades: ['Ensenada Cruiseport Village', 'Carnival / Royal Caribbean / Princess', 'CEMEX / Mineras del Norte'],
+            certifications: ['PBIP / ISPS', 'Sanidad Internacional', 'ISO 9001 / 14001'],
+          },
           procedures: ['Cruceros > 300 m atracan estribor al muelle (starboard alongside) en ECV1/ECV2.'],
           restrictionsSummary: 'ASIPONA 1: 13.00 m; ASIPONA 2: 7.50 m; ECV1/ECV2: 9.50–10.00 m.',
           berths: [
@@ -2400,6 +4034,60 @@ export function buildAdditionalPortsData(images: {
           mapY: 70,
           imageType: 'pajaritos',
           cargoGroups: ['Hidrocarburos y Gas'],
+          storageSummary: {
+            coveredSqm: 3500,
+            openYardSqm: 120000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Dos tanques criogénicos de GNL de 160,000 m³ c/u (320,000 m³ totales) a -162 °C, tren de regasificación de 1,300 MMpcd y planta de licuefacción ECA LNG Fase 1 de 3.25 Mtpa en Costa Azul.',
+            warehousesBreakdownEn:
+              'Two 160,000 m³ cryogenic LNG tanks (320,000 m³ total) at -162 °C, 1,300 MMscfd regasification train and 3.25 Mtpa ECA LNG Phase 1 liquefaction export facility.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Energía Costa Azul GNL (Sempra Infrastructure) — Regasificación 1,300 MMpcd y Licuefacción Exportadora 3.25 Mtpa',
+            positioningHeadlineEn:
+              'Energía Costa Azul LNG (Sempra Infrastructure) — 1,300 MMscfd Regas & 3.25 Mtpa Export Liquefaction Hub',
+            address: 'Km 14 Carretera Escénica Tijuana–Ensenada, Costa Azul, Ensenada, Baja California',
+            customsRegime: 'Terminal Marítima Energética Estratégica (Sempra / ECA LNG) · Aduana de Ensenada',
+            customsRegimeEn: 'Strategic Bi-Directional LNG Maritime Terminal (Sempra) · Ensenada Customs',
+            commercialServices: [
+              'Carga de exportación e importación criogénica de Gas Natural Licuado (GNL) vía brazos marinos de 16" (10,000–12,000 m³/h)',
+              'Capacidad dual de regasificación hacia Baja California (1,300 MMpcd) y licuefacción exportadora Fase 1 (3.25 Mtpa)',
+              'Escolta obligatoria de 3 remolcadores azimutales, monitoreo meteorológico de oleaje (<2.0 m) y protocolo SIGTTO',
+            ],
+            commercialServicesEn: [
+              'Bi-directional cryogenic LNG loading & unloading via 16" marine arms at 10,000–12,000 m³/h',
+              'Dual 1,300 MMscfd regasification sendout plus 3.25 Mtpa ECA LNG Phase 1 export liquefaction train',
+              'Mandatory 3-tug escort, real-time swell monitoring (<2.0 m) and full SIGTTO safety protocols',
+            ],
+            infrastructureHighlights: [
+              '360 m de espigón protegido por rompeolas propio para metaneros hasta 315 m LOA y 13.8 m calado',
+              '320,000 m³ de almacenamiento criogénico total + planta de licuefacción ECA LNG con acceso directo al Pacífico',
+              'Interconexión directa con Gasoducto Rosarito y red norteamericana evitando el Canal de Panamá hacia Asia',
+            ],
+            infrastructureHighlightsEn: [
+              '360 m breakwater-protected jetty handling LNG carriers up to 315 m LOA / 13.8 m draft',
+              '320,000 m³ cryogenic tank farm + Pacific-facing ECA LNG liquefaction train',
+              'Direct tie-in to Rosarito Pipeline & US gas grid bypassing Panama Canal for Asia exports',
+            ],
+            vesselTypesServed: ['Buques Metaneros Criogénicos GNL (hasta 315 m LOA / 217,000 m³)'],
+            vesselTypesServedEn: ['Cryogenic LNG Carriers (up to 315 m LOA / 217,000 m³)'],
+            connectivity:
+              'Gasoducto Rosarito–Tijuana–Baja Norte con interconexión bidireccional a Estados Unidos (El Paso / North Baja).',
+            connectivityEn:
+              'Rosarito–Tijuana pipeline system with bi-directional US cross-border interconnect.',
+            operationalAdvantages: [
+              'Única terminal de exportación GNL en el Pacífico norteamericano con tránsito directo sin pasar por el Canal de Panamá hacia Asia.',
+              'Operación aislada 14 millas al norte del puerto comercial con dársena y rompeolas propios.',
+            ],
+            operationalAdvantagesEn: [
+              'Direct Pacific Coast LNG export outlet to Asia eliminating Panama Canal transit delays.',
+              'Dedicated breakwater-protected marine basin 14 miles north of commercial port traffic.',
+            ],
+            keyClientsOrTrades: ['Sempra Infrastructure', 'TotalEnergies', 'Mitsui', 'CFE / Baja California Gas'],
+            certifications: ['SIGTTO / OCIMF', 'PBIP / ISPS', 'CRE / ASEA', 'ISO 9001 / 14001 / 45001'],
+          },
           procedures: ['Cumplimiento estricto SIGTTO y 3 remolcadores de escolta.'],
           restrictionsSummary: 'Maniobras diurnas y ventana de oleaje < 2.0 m.',
           berths: [
@@ -2548,6 +4236,49 @@ export function buildAdditionalPortsData(images: {
           mapY: 42,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores', 'Granel Mineral'],
+          storageSummary: {
+            coveredSqm: 4200,
+            openYardSqm: 38000,
+            containerYardSqm: 15000,
+            warehousesBreakdown:
+              'Silos cementeros CEMEX (-7.00 m), patios de carga general y recinto aduanal APIBCS Pichilingue junto a terminal internacional de cruceros (-9.15 m).',
+            warehousesBreakdownEn:
+              'CEMEX bulk cement silos (-7.00 m), APIBCS bonded general cargo yards & Pichilingue international cruise hall (-9.15 m).',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal Comercial, Cementera CEMEX y Cruceros Internacionales de Bahía de Pichilingue (-9.15 m)',
+            positioningHeadlineEn:
+              'Pichilingue Bay Commercial Cargo, CEMEX Cement & International Cruise Terminal (-9.15 m)',
+            address: 'Carretera Escénica a Pichilingue Km 17, La Paz, Baja California Sur',
+            customsRegime: 'Recinto Fiscal Portuario APIBCS Pichilingue · Aduana de La Paz',
+            customsRegimeEn: 'APIBCS Bonded Port Precinct · La Paz Customs',
+            commercialServices: [
+              'Recepción de cruceros internacionales y buques de altura en Usos Múltiples 2 (-9.15 m NBMI)',
+              'Descarga neumática de cemento a granel hacia silos CEMEX (-7.00 m) y materiales de construcción para Los Cabos/La Paz',
+              'Manejo de carga general paletizada, contenedores y abastecimiento comercial peninsular (~80% del suministro de BCS)',
+            ],
+            commercialServicesEn: [
+              'International cruise calls & deep-sea breakbulk at Multipurpose Berth 2 (-9.15 m NBMI)',
+              'Pneumatic bulk cement unloading into CEMEX silos (-7.00 m) serving La Paz & Los Cabos construction',
+              'General cargo & container stevedoring powering ~80% of Baja California Sur commercial supply',
+            ],
+            infrastructureHighlights: [
+              '480 m en Usos Múltiples 1 (-6.0 m), Usos Múltiples 2 / Cruceros (-9.15 m) y CEMEX (-7.0 m)',
+              'Puerto total de +1,400 m de muelle y >4.5M MT/año de capacidad instalada en Pichilingue',
+            ],
+            infrastructureHighlightsEn: [
+              '480 m across Multipurpose 1 (-6.0 m), Multipurpose 2/Cruise (-9.15 m) & CEMEX (-7.0 m)',
+              'Part of Pichilingue’s 1,400+ m quay system (>4.5M MT/yr capacity)',
+            ],
+            vesselTypesServed: ['Cruceros Internacionales (hasta 250 m LOA)', 'Cementeros y Carga General Costera'],
+            vesselTypesServedEn: ['International Cruise Ships (up to 250 m LOA)', 'Cement Carriers & Coastal Breakbulk'],
+            connectivity: 'Carretera Escénica Pichilingue hacia La Paz y corredor turístico Los Cabos (Transpeninsular Sur).',
+            connectivityEn: 'Scenic Hwy to La Paz & Transpeninsular corridor linking Los Cabos.',
+            operationalAdvantages: ['Único recinto comercial de altura del sur peninsular concentrando >80% del abasto estatal.'],
+            operationalAdvantagesEn: ['Primary maritime supply gateway handling ~80% of Baja California Sur freight.'],
+            certifications: ['ISPS / PBIP', 'APIBCS'],
+          },
           procedures: ['Confirmar marea NBMI antes de operar en Usos Múltiples 1 (-6.00 m) o CEMEX (-7.00 m).'],
           restrictionsSummary: 'UM2 Cruceros: -9.15 m; CEMEX: -7.00 m; UM1: -6.00 m NBMI.',
           berths: [
@@ -2582,6 +4313,47 @@ export function buildAdditionalPortsData(images: {
           mapY: 58,
           imageType: 'pajaritos',
           cargoGroups: ['Carga General y Contenedores', 'Hidrocarburos y Gas'],
+          storageSummary: {
+            coveredSqm: 3000,
+            openYardSqm: 62000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Patios de tráileres y pasaje Baja Ferries / TMC (Transbordadores 1, 1 Bis, 2 y 3) + planta de almacenamiento de combustibles PEMEX Punta Prieta y NFE GNL/energía.',
+            warehousesBreakdownEn:
+              'Baja Ferries / TMC Ro-Pax trailer & passenger staging yards + PEMEX Punta Prieta fuel tank farm & NFE LNG/power infrastructure.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Autopista Marítima Ro-Pax Mar de Cortés (Mazatlán/Topolobampo) y Hub Energético Punta Prieta',
+            positioningHeadlineEn:
+              'Sea of Cortez Ro-Pax Ferry Corridor (Mazatlán/Topolobampo) & Punta Prieta Fuel/LNG Hub',
+            address: 'Bahía de Pichilingue / Punta Prieta, La Paz, Baja California Sur',
+            customsRegime: 'Recinto Cabotaje APIBCS y Terminal Estratégica PEMEX Punta Prieta',
+            customsRegimeEn: 'APIBCS Cabotage Ro-Pax Enclosure & PEMEX Punta Prieta Fuel Terminal',
+            commercialServices: [
+              'Operación diaria Ro-Pax Baja Ferries y TMC (transbordadores hasta 300 m / rampas 1–3) conectando Sinaloa con BCS',
+              'Descarga de gasolinas, diésel UBA y turbosina en Terminal PEMEX Punta Prieta + infraestructura GNL/eléctrica NFE',
+            ],
+            commercialServicesEn: [
+              'Daily scheduled Baja Ferries & TMC Ro-Pax cargo/passenger crossings to Mazatlán & Topolobampo',
+              'Refined fuels discharge at PEMEX Punta Prieta jetty plus NFE LNG power supply operations',
+            ],
+            infrastructureHighlights: [
+              '620 m en Transbordadores 1/1 Bis (-6.50 m), 2/3 (-5.50 m) y Muelle PEMEX (-9.0 m)',
+              'Rampas hidráulicas RoRo y brazos marinos de combustible a 900 m³/h',
+            ],
+            infrastructureHighlightsEn: [
+              '620 m quay spanning Ferry 1/1 Bis (-6.50 m), Ferry 2/3 (-5.50 m) & PEMEX Punta Prieta (-9.0 m)',
+              'Hydraulic RoPax ramps & 900 m³/hr refined product marine arms',
+            ],
+            vesselTypesServed: ['Buques Transbordadores Ro-Pax / RoRo', 'Buques Tanque Costeros PEMEX MR1'],
+            vesselTypesServedEn: ['Ro-Pax / RoRo Cargo Ferries', 'Coastal Product Tankers MR1'],
+            connectivity: 'Carretera Transpeninsular Sur y puente marítimo directo a Sinaloa.',
+            connectivityEn: 'Transpeninsular South Highway & daily ferry link across Sea of Cortez.',
+            operationalAdvantages: ['Prioridad de tránsito en canal para mantener itinerarios diarios de abasto hacia BCS.'],
+            operationalAdvantagesEn: ['Channel transit priority safeguarding daily Baja California Sur freight schedules.'],
+            certifications: ['ISPS / PBIP', 'OCIMF / SIRE (PEMEX)'],
+          },
           procedures: ['Ventanas fijas diarias de salida/llegada para buques Ro-Pax.'],
           restrictionsSummary: 'Transbordador 1/1 Bis: -6.50 m; Transbordador 2/3: -5.50 m NBMI.',
           berths: [
@@ -2734,6 +4506,49 @@ export function buildAdditionalPortsData(images: {
           mapY: 42,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores', 'Granel Agrícola', 'Carga Proyecto'],
+          storageSummary: {
+            coveredSqm: 20200,
+            openYardSqm: 115000,
+            containerYardSqm: 45000,
+            warehousesBreakdown:
+              'TUM de 1,300 m (6 posiciones) respaldada por 5 bodegas fiscales de 3,000 m² c/u + almacén de 5,200 m² con grúa puente, patios automotrices RoRo y frigoríficos atuneros PINSA.',
+            warehousesBreakdownEn:
+              '1,300 m TUM (6 berths) backed by 5 x 3,000 m² sheds + 5,200 m² crane-equipped warehouse, automotive RoRo lots & PINSA tuna cold storage.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'TUM de 1,300 m (6 Posiciones), Hub Automotriz/Contenedores, Flota Atunera PINSA y Cruceros Riviera Mexicana',
+            positioningHeadlineEn:
+              '1,300 m Multipurpose Quay (6 Berths), Automotive RoRo, PINSA Tuna Capital & Cruise Port',
+            address: 'Interior Recinto Fiscal s/n, Col. Playa Sur, Mazatlán, Sinaloa',
+            customsRegime: 'Recinto Fiscal Portuario ASIPONA / TMAZ · Aduana de Mazatlán (VUCEM / MediPort)',
+            customsRegimeEn: 'ASIPONA / TMAZ Bonded Port Precinct · Mazatlán Customs (VUCEM / MediPort)',
+            commercialServices: [
+              'Importación/exportación de automóviles RoRo (PCTC) con patios pavimentados conectados a supercarretera Mazatlán–Durango',
+              'Manejo de contenedores FCL/reefer, acero estructural, madera y carga proyecto en 6 posiciones continuas (1,300 m)',
+              'Operación pesquera/frigorífica líder de México (PINSA atún congelado) y atención a cruceros turísticos Riviera Mexicana',
+            ],
+            commercialServicesEn: [
+              'PCTC RoRo vehicle logistics linked to Durango–Monterrey–Bajío corridor via Mazatlán–Durango superhighway',
+              'FCL/reefer containers, steel breakbulk & project cargo across 1,300 m continuous quay (6 berths)',
+              'Mexico’s largest industrial tuna fleet discharge (PINSA cold chain) & Mexican Riviera cruise ship berthage',
+            ],
+            infrastructureHighlights: [
+              '1,300 m lineales en 6 posiciones TUM a 10.36 m (34 ft) de calado operativo',
+              '5 bodegas cubiertas de 3,000 m² + almacén de 5,200 m² con grúa puente + grúas móviles portuarias',
+            ],
+            infrastructureHighlightsEn: [
+              '1,300 m continuous quay across 6 TUM berths at 10.36 m (34 ft) operational draft',
+              '20,200 m² total covered storage (5 sheds + crane warehouse) & heavy mobile craneage',
+            ],
+            vesselTypesServed: ['Buques PCTC / RoRo Automotrices', 'Cruceros Riviera Mexicana, Contenedores y Atuneros PINSA'],
+            vesselTypesServedEn: ['PCTC / RoRo Auto Carriers', 'Mexican Riviera Cruise Liners, Boxships & Tuna Vessels'],
+            connectivity: 'Supercarretera Mazatlán–Durango hacia Torreón, Saltillo y Monterrey + Ferromex.',
+            connectivityEn: 'Mazatlán–Durango toll expressway to Torreón, Saltillo & Monterrey + Ferromex rail.',
+            operationalAdvantages: ['Salida estratégica del corredor económico del Norte de México hacia el Pacífico.'],
+            operationalAdvantagesEn: ['Primary Pacific ocean exit for the Durango–Torreón–Monterrey economic corridor.'],
+            certifications: ['ISPS / PBIP', 'ISO 9001', 'SENASICA'],
+          },
           procedures: ['Programación electrónica vía MediPort Mazatlán; inspección aduanal 48 h previas.'],
           restrictionsSummary: 'Calado op. 10.36 m (34 ft) en posiciones TUM principales.',
           berths: [
@@ -2768,6 +4583,47 @@ export function buildAdditionalPortsData(images: {
           mapY: 56,
           imageType: 'pajaritos',
           cargoGroups: ['Hidrocarburos y Gas', 'Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 2500,
+            openYardSqm: 55000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Terminal de Almacenamiento PEMEX (200,000 bbl en tanque) + patios Ro-Pax de Baja Ferries y TMC con 2 rampas RoRo y 4 duques de alba.',
+            warehousesBreakdownEn:
+              'PEMEX 200,000 bbl fuel terminal tank farm + Baja Ferries / TMC Ro-Pax marshaling yards with 2 RoRo ramps & 4 dolphins.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Enlace Ro-Pax Baja Ferries / TMC hacia La Paz y Terminal Petrolera PEMEX (35 ft)',
+            positioningHeadlineEn:
+              'Baja Ferries / TMC Ro-Pax Sea Bridge to La Paz & PEMEX Fuel Import Berth (35 ft)',
+            address: 'Dársena Sur / Zona de Transbordadores, Mazatlán, Sinaloa',
+            customsRegime: 'Terminal PEMEX Logística y Terminal Cabotaje Ro-Pax · Aduana Mazatlán',
+            customsRegimeEn: 'PEMEX Fuel Terminal & Cabotage Ro-Pax Ferry Facility · Mazatlán Customs',
+            commercialServices: [
+              'Operación diaria Ro-Pax Baja Ferries y TMC de tractocamiones, mercancías y pasajeros hacia La Paz (BCS)',
+              'Descarga de diésel marino, gasolinas y combustóleo en Muelle PEMEX (115 m / 200,000 bbl)',
+            ],
+            commercialServicesEn: [
+              'Daily scheduled Baja Ferries & TMC Ro-Pax cargo/passenger crossings to La Paz, BCS',
+              'Fuel unloading (ULSD, gasoline & fuel oil) feeding PEMEX 200,000 bbl coastal depot',
+            ],
+            infrastructureHighlights: [
+              'Muelle PEMEX 115 m (10.67 m / 35 ft) + Terminal Transbordadores 200 m con 2 rampas RoRo y 4 duques (9.15 m / 30 ft)',
+              'Capacidad de almacenamiento de 200,000 bbl en TAD PEMEX y patios de pre-embarque vehicular Ro-Pax',
+            ],
+            infrastructureHighlightsEn: [
+              '115 m PEMEX jetty (35 ft draft) + 200 m Ferry Quay with 2 RoRo ramps & 4 dolphins (30 ft draft)',
+              '200,000 bbl PEMEX onshore storage farm plus dedicated Ro-Pax commercial vehicle staging lots',
+            ],
+            vesselTypesServed: ['Buques Transbordadores Ro-Pax', 'Buques Tanque Producto MR1'],
+            vesselTypesServedEn: ['Ro-Pax Ferries', 'MR1 Product Tankers'],
+            connectivity: 'Autopista Mazatlán–Culiacán y Supercarretera Mazatlán–Durango.',
+            connectivityEn: 'Mazatlán–Culiacán & Mazatlán–Durango expressway links.',
+            operationalAdvantages: ['Principal nodo continental sur del puente marítimo Sinaloa–Baja California Sur.'],
+            operationalAdvantagesEn: ['Southern mainland anchor for Baja California Sur ferry logistics.'],
+            certifications: ['ISPS / PBIP', 'OCIMF / SIRE (PEMEX)'],
+          },
           procedures: ['Vetting SIRE en PEMEX; coordinación de rampas RoRo en Terminal de Transbordadores.'],
           restrictionsSummary: 'PEMEX: 10.67 m (35 ft); Transbordadores: 9.15 m (30 ft).',
           berths: [
@@ -2920,6 +4776,49 @@ export function buildAdditionalPortsData(images: {
           mapY: 44,
           imageType: 'recintoSur',
           cargoGroups: ['Granel Agrícola', 'Carga General y Contenedores', 'Granel Mineral'],
+          storageSummary: {
+            coveredSqm: 28000,
+            openYardSqm: 92000,
+            containerYardSqm: 15000,
+            warehousesBreakdown:
+              'Silos de alta capacidad para maíz blanco de Sinaloa en Terminal Transoceánica/TUM, bodegas de fertilizantes/urea, silos CEMEX y patio de transbordadores Baja Ferries.',
+            warehousesBreakdownEn:
+              'High-capacity Sinaloa white corn export silos at Transoceánica/TUM, dry fertilizer sheds, CEMEX cement silos & Baja Ferries Ro-Pax yard.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Principal Puerto Exportador de Maíz Blanco de Sinaloa, Fertilizantes y Enlace Ro-Pax a La Paz',
+            positioningHeadlineEn:
+              'Sinaloa’s Premier White Corn Export Silos, Bulk Fertilizer & La Paz Ro-Pax Ferry Gateway',
+            address: 'Recinto Portuario Topolobampo, Ahome (Los Mochis), Sinaloa',
+            customsRegime: 'Recinto Fiscal Portuario ASIPONA · Aduana de Mazatlán/Topolobampo (SENASICA)',
+            customsRegimeEn: 'ASIPONA Bonded Enclosure · Topolobampo Customs & SENASICA Phytosanitary Clearance',
+            commercialServices: [
+              'Embarque mecanizado de maíz blanco y trigo cristalino en Terminal Transoceánica / TUM (7,000–9,500 MT/día)',
+              'Importación de urea, DAP y fertilizantes sólidos/minerales hacia el Valle del Fuerte',
+              'Cruce diario de transbordadores Ro-Pax Baja Ferries hacia La Paz/Pichilingue y descarga CEMEX',
+            ],
+            commercialServicesEn: [
+              'Mechanized export loading of Sinaloa white corn & wheat at Transoceánica/TUM (7,000–9,500 MT/day)',
+              'Bulk urea, DAP & mineral import stevedoring feeding Northern Sinaloa agriculture',
+              'Daily Baja Ferries Ro-Pax crossing to La Paz plus CEMEX bulk cement discharge',
+            ],
+            infrastructureHighlights: [
+              'Canal de acceso de 22.22 km × 150 m (13.40 m oficial) con 11 posiciones portuarias totales',
+              'TUM Transoceánica (10.80 m / 35.4 ft), Transbordadores RoRo (6.60 m) y CEMEX (5.00 m)',
+            ],
+            infrastructureHighlightsEn: [
+              '22.22 km × 150 m approach channel (13.40 m official depth) serving 11 total port positions',
+              'Transoceánica TUM (10.80 m / 35.4 ft), RoRo Ferries (6.60 m) & CEMEX berth (5.00 m)',
+            ],
+            vesselTypesServed: ['Graneleros Handysize / Supramax (grano y fertilizantes)', 'Transbordadores Ro-Pax y Cementeros'],
+            vesselTypesServedEn: ['Handysize / Supramax Grain & Fertilizer Bulkers', 'Ro-Pax Ferries & Cement Ships'],
+            connectivity: 'Ferrocarril Chihuahua–Pacífico (Chepe / Ferromex) y Carretera Los Mochis–Topolobampo (Fed. 15).',
+            connectivityEn: 'Ferromex Chihuahua–Pacific railway & Los Mochis–Topolobampo Federal Hwy 15.',
+            operationalAdvantages: ['Ubicación en pleno corazón agrícola del norte de Sinaloa reduciendo fletes de grano.'],
+            operationalAdvantagesEn: ['Direct dockside silos at the center of Mexico’s highest-yield white corn belt.'],
+            certifications: ['ISPS / PBIP', 'SENASICA'],
+          },
           procedures: ['Inspección fitosanitaria SENASICA y control estricto de humedad en exportación de maíz.'],
           restrictionsSummary: 'TUM: 10.80 m (35.4 ft); RoRo: 6.60 m (21.6 ft); CEMEX: 5.00 m (16.5 ft).',
           berths: [
@@ -2954,6 +4853,47 @@ export function buildAdditionalPortsData(images: {
           mapY: 54,
           imageType: 'pajaritos',
           cargoGroups: ['Hidrocarburos y Gas', 'Petroquímica y Líquidos'],
+          storageSummary: {
+            coveredSqm: 1500,
+            openYardSqm: 45000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Terminales de almacenamiento de refinados PEMEX Logística e IEnova Topolobampo + tanques de amoníaco anhidro agrícola en zona industrial.',
+            warehousesBreakdownEn:
+              'PEMEX Logística & IEnova refined hydrocarbon tank farms plus agricultural anhydrous ammonia storage in Topolobampo industrial park.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Hub Energético y Químico del Noroeste: PEMEX (12.15 m), IEnova Combustibles y Amoníaco Anhidro',
+            positioningHeadlineEn:
+              'NW Mexico Fuel & Chemical Hub: PEMEX (12.15 m), IEnova Fuels & Anhydrous Ammonia',
+            address: 'Zona Industrial Portuaria Topolobampo, Ahome, Sinaloa',
+            customsRegime: 'Terminales Especializadas PEMEX e IEnova (CRE / ASEA) · Aduana Topolobampo',
+            customsRegimeEn: 'CRE/ASEA Regulated Fuel & Ammonia Terminals · Topolobampo Customs',
+            commercialServices: [
+              'Importación y cabotaje de gasolinas, diésel UBA y combustóleo en muelles PEMEX 1–2 e IEnova',
+              'Importación de amoníaco anhidro fertilizante para distritos de riego del norte de Sinaloa y Sonora',
+            ],
+            commercialServicesEn: [
+              'Marine discharge of gasoline, ULSD & fuel oil via twin PEMEX jetties & IEnova terminal',
+              'Anhydrous ammonia gas carrier unloading supporting Sinaloa agricultural irrigation districts',
+            ],
+            infrastructureHighlights: [
+              '460 m combinados entre 2 muelles PEMEX (11.26–12.15 m) y muelle IEnova (~11.10 m)',
+              'Brazos marinos 10"–12", sistema ESD y red contraincendio dedicada',
+            ],
+            infrastructureHighlightsEn: [
+              '460 m berth length across twin PEMEX jetties (11.26–12.15 m) & IEnova berth (11.10 m)',
+              '10"–12" marine loading arms, ESD trips & dedicated firewater protection',
+            ],
+            vesselTypesServed: ['Buques Tanque Producto MR1 / MR2', 'Gaseros de Amoníaco Anhidro'],
+            vesselTypesServedEn: ['MR1 / MR2 Product Tankers', 'Anhydrous Ammonia Gas Carriers'],
+            connectivity: 'Zona industrial Los Mochis–Topolobampo y ferrocarril/carretera federal 15.',
+            connectivityEn: 'Topolobampo–Los Mochis industrial corridor, Ferromex rail & Fed. Hwy 15.',
+            operationalAdvantages: ['Calados profundos de hasta 12.15 m para tanqueros cargados en el Golfo de California.'],
+            operationalAdvantagesEn: ['Deep 12.15 m hydrocarbon draft maximizing Sea of Cortez tanker parcels.'],
+            certifications: ['OCIMF / SIRE', 'ISGOTT', 'SIGTTO (Amoníaco)'],
+          },
           procedures: ['Vetting SIRE obligatorio y protocolo ISGOTT Ship/Shore Checklist.'],
           restrictionsSummary: 'PEMEX: 11.26 – 12.15 m; IEnova: ~11.10 m.',
           berths: [
@@ -3105,6 +5045,51 @@ export function buildAdditionalPortsData(images: {
           mapY: 36,
           imageType: 'recintoSur',
           cargoGroups: ['Granel Mineral', 'Petroquímica y Líquidos', 'Granel Agrícola'],
+          storageSummary: {
+            coveredSqm: 12000,
+            openYardSqm: 146000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              '~146,000 m² de patios minerales + 12,000 m² de almacenes cubiertos, tanques y domos de fertilizantes Cortez Transfert y parque de ácido sulfúrico minero.',
+            warehousesBreakdownEn:
+              '~146,000 m² mineral yards + 12,000 m² covered warehouses, Cortez Transfert fertilizer domes/tanks & mining sulfuric acid tank farm.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Banda Este (-16.00 m NBMI): Exportación Minera de Sonora (Cobre/Ácido Sulfúrico) y Trigo del Yaqui',
+            positioningHeadlineEn:
+              'Banda Este Deep-Water Hub (-16.00 m NBMI): Sonora Copper Concentrate, Acid & Yaqui Wheat',
+            address: 'Recinto Fiscal Portuario Banda Este, Guaymas, Sonora',
+            customsRegime: 'Recinto Fiscal ASIPONA y Terminales Mineras/Agrícolas · Aduana de Guaymas',
+            customsRegimeEn: 'ASIPONA Bonded Quays & Mineral/Grain Terminals · Guaymas Customs',
+            commercialServices: [
+              'Embarque mecanizado antipolvo de concentrado de cobre, barita, yeso y trigo cristalino del Valle del Yaqui',
+              'Almacenamiento y embarque/descarga de ácido sulfúrico minero y fertilizantes en domos/tanques Cortez Transfert',
+              'Capacidad global portuaria superior a 7.6 millones MT/año con acceso ferroviario directo Ferromex',
+            ],
+            commercialServicesEn: [
+              'Enclosed mechanized loading of copper concentrate, barite, gypsum & Yaqui Valley durum wheat',
+              'Mining-grade sulfuric acid & liquid/dry fertilizer logistics via Cortez Transfert domes/tanks',
+              'Port-wide capacity >7.6M MT/year backed by on-dock Ferromex rail sidings',
+            ],
+            infrastructureHighlights: [
+              '577 m continuos en Muelles 2, 3 y 4 a 16.00 m NBMI (14.80 m calado op.)',
+              'Abrigo natural entre Isla Pájaros y Punta Baja sin requerir escolleras exteriores',
+              'Espuelas ferroviarias Ferromex conectadas al corredor minero Sonora–Chihuahua–Arizona',
+            ],
+            infrastructureHighlightsEn: [
+              '577 m quay across Berths 2, 3 & 4 at 16.00 m NBMI (14.80 m operational draft)',
+              'Natural deep-water shelter behind Isla Pájaros & Punta Baja without breakwaters',
+              'On-dock Ferromex rail linked to Sonora–Chihuahua–Arizona mining corridor',
+            ],
+            vesselTypesServed: ['Graneleros Supramax / Panamax (concentrados y grano)', 'Quimiqueros de Ácido Sulfúrico'],
+            vesselTypesServedEn: ['Supramax / Panamax Dry Bulk Carriers', 'Dedicated Sulfuric Acid Tankers'],
+            connectivity: 'Ferrocarril Ferromex y Carretera Federal 15 hacia Hermosillo, Nogales y Chihuahua.',
+            connectivityEn: 'Ferromex rail & Federal Hwy 15 linking Hermosillo, Chihuahua & Arizona border.',
+            operationalAdvantages: ['Profundidad de 16 m con abrigo natural que minimiza retrasos climáticos en el Mar de Cortés.'],
+            operationalAdvantagesEn: ['Natural 16 m deep-water shelter ensuring ultra-high weather uptime in Sonora.'],
+            certifications: ['ISPS / PBIP', 'ISGOTT / COF', 'SENASICA', 'PROFEPA'],
+          },
           procedures: ['Control ambiental antipolvo en embarque de concentrado de cobre; checklist ISGOTT en ácido sulfúrico.'],
           restrictionsSummary: '577 m totales · Profundidad 16.00 m NBMI.',
           berths: [
@@ -3139,6 +5124,47 @@ export function buildAdditionalPortsData(images: {
           mapY: 56,
           imageType: 'pajaritos',
           cargoGroups: ['Carga General y Contenedores', 'Granel Mineral', 'Hidrocarburos y Gas'],
+          storageSummary: {
+            coveredSqm: 6500,
+            openYardSqm: 85000,
+            containerYardSqm: 32000,
+            warehousesBreakdown:
+              'Patio multipropósito y modernización de grúas STS SSA Marine en Banda Sur (-15.0 m NBMI), terminal de cruceros (-11.0 m) y almacenamiento de combustibles PEMEX Sonora.',
+            warehousesBreakdownEn:
+              'Multipurpose/container yard undergoing SSA Marine STS crane upgrade on Banda Sur (-15.0 m NBMI), Cruise terminal (-11.0 m) & PEMEX Sonora fuel depot.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Banda Sur (-15.00 m NBMI · Modernización Contenedores SSA), Cruceros y Combustibles PEMEX',
+            positioningHeadlineEn:
+              'Banda Sur (-15.00 m NBMI · SSA Container Upgrade), Cruise Pier & PEMEX Fuel Depot',
+            address: 'Banda Sur Recinto Portuario, Guaymas, Sonora',
+            customsRegime: 'Recinto Fiscal Portuario ASIPONA y PEMEX Guaymas · Aduana de Guaymas',
+            customsRegimeEn: 'ASIPONA Fiscal Enclosure & PEMEX Marine Terminal · Guaymas Customs',
+            commercialServices: [
+              'Operación multipropósito de contenedores (modernización STS SSA Marine), carga general, barita y coque en Muelles 5–6',
+              'Atención a cruceros turísticos del Mar de Cortés (11.00 m) y descarga de refinados PEMEX para Sonora',
+            ],
+            commercialServicesEn: [
+              'Container (with SSA Marine STS crane modernization), breakbulk, barite & petcoke stevedoring at Berths 5–6',
+              'Sea of Cortez cruise calls (11.00 m) & PEMEX regional fuel imports serving Sonora',
+            ],
+            infrastructureHighlights: [
+              '640 m totales combinando Banda Sur (359 m a 15.00 m NBMI), Cruceros (11.00 m) y PEMEX',
+              'Enlace intermodal proyectado al corredor logístico Chihuahua–Sonora–Arizona',
+            ],
+            infrastructureHighlightsEn: [
+              '640 m across Banda Sur (359 m at 15.00 m NBMI), Cruise (11.00 m) & PEMEX jetties',
+              'Intermodal link serving the Chihuahua–Sonora–Arizona logistics corridor',
+            ],
+            vesselTypesServed: ['Portacontenedores y Multipropósito', 'Graneleros, Cruceros y Buques Tanque PEMEX'],
+            vesselTypesServedEn: ['Container & Multipurpose Ships', 'Bulkers, Cruise Liners & PEMEX Tankers'],
+            connectivity: 'Carretera Federal 15 (Guaymas–Hermosillo–Nogales) y red ferroviaria Ferromex.',
+            connectivityEn: 'Federal Hwy 15 (Guaymas–Hermosillo–Nogales) and Ferromex rail.',
+            operationalAdvantages: ['Posiciona a Guaymas como puerta alternativa del noroeste hacia Asia y el mercado de Arizona.'],
+            operationalAdvantagesEn: ['Positions Sonora as an alternative Pacific gateway for Chihuahua & Arizona trade.'],
+            certifications: ['ISPS / PBIP', 'OCIMF / SIRE (PEMEX)'],
+          },
           procedures: ['VUMCE 48 h previas; SIRE vigente en maniobras PEMEX.'],
           restrictionsSummary: 'Banda Sur 15.00 m NBMI; Muelle Cruceros 11.00 m.',
           berths: [
@@ -3301,6 +5327,51 @@ export function buildAdditionalPortsData(images: {
           mapY: 42,
           imageType: 'recintoSur',
           cargoGroups: ['Carga General y Contenedores', 'Carga Proyecto', 'Granel Mineral'],
+          storageSummary: {
+            coveredSqm: 15000,
+            openYardSqm: 95000,
+            containerYardSqm: 62000,
+            warehousesBreakdown:
+              'Terminal de Contenedores (275 m / -11 m), Muelles Fiscales I y II (450 m / -10 m) con bodegas fiscales, patios ferroviarios on-dock CIIT y zona de carga proyecto eólica.',
+            warehousesBreakdownEn:
+              'Container Terminal (275 m / -11 m), Fiscal Piers I & II (450 m / -10 m) with bonded sheds, on-dock CIIT railyard & wind-energy heavy laydown.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Cabecera Pacífico del Corredor Interoceánico CIIT (Enlace Ferroviario Directo a Coatzacoalcos)',
+            positioningHeadlineEn:
+              'Pacific Terminus of Mexico’s Interoceanic Corridor (On-Dock CIIT Rail Link to Coatzacoalcos)',
+            address: 'Av. Calzada Teniente José Azueta s/n, Col. Cantarranas, Salina Cruz, Oaxaca',
+            customsRegime: 'Recinto Fiscal Portuario ASIPONA y Polo de Desarrollo CIIT · Aduana de Salina Cruz',
+            customsRegimeEn: 'ASIPONA Bonded Precinct & CIIT Interoceanic Corridor Regime · Salina Cruz Customs',
+            commercialServices: [
+              'Operación intermodal de contenedores en puente terrestre Pacífico–Golfo (Salina Cruz ↔ Coatzacoalcos por Línea Z CIIT)',
+              'Manejo de carga proyecto energética/eólica del Istmo de Tehuantepec, acero, automóviles y graneles en Fiscal I y II',
+              'Consolidación directa en tren unitario desde patios ferroviarios dentro del recinto fiscal',
+            ],
+            commercialServicesEn: [
+              'Trans-Isthmus container intermodal bridge linking Pacific calls to Coatzacoalcos via CIIT Line Z rail',
+              'Heavy wind-turbine & energy project cargo, steel & breakbulk stevedoring across Fiscal I & II',
+              'On-dock unit-train transloading directly inside the customs precinct',
+            ],
+            infrastructureHighlights: [
+              '725 m continuos entre Contenedores (275 m, -11.0 m) y Fiscal I/II (450 m, -10.0 a -10.75 m) con espuela férrea on-dock',
+              'Proyecto estratégico de nuevo Rompeolas Oeste y ampliación de aguas profundas (-24 m)',
+            ],
+            infrastructureHighlightsEn: [
+              '725 m continuous quay spanning Container Berth (275 m, -11.0 m) & Fiscal I/II (450 m, -10.0 m) with on-dock rail',
+              'Supported by new West Breakwater deep-water outer harbor expansion (-24 m)',
+            ],
+            vesselTypesServed: ['Portacontenedores Feeder / Panamax', 'Buques Heavy-Lift (eólicos/proyecto) y Carga General'],
+            vesselTypesServedEn: ['Feeder / Panamax Containerships', 'Wind-Project Heavy-Lift & General Cargo Ships'],
+            connectivity:
+              'Ferrocarril del Istmo de Tehuantepec (Línea Z hacia Coatzacoalcos y Línea K hacia Chiapas) más Carretera Transístmica 185.',
+            connectivityEn:
+              'Interoceanic Railway (Line Z to Coatzacoalcos & Line K to Chiapas) plus Trans-Isthmic Hwy 185.',
+            operationalAdvantages: ['Única terminal del Pacífico Sur mexicano integrada por ferrocarril directo al Golfo de México.'],
+            operationalAdvantagesEn: ['Only Southern Pacific port with direct cross-isthmus rail to the Gulf of Mexico.'],
+            certifications: ['ISPS / PBIP', 'Corredor CIIT'],
+          },
           procedures: ['Monitoreo estricto de vientos Tehuanos en maniobras de grúas y carga proyecto eólica.'],
           restrictionsSummary: 'Contenedores: 10.00 m op.; Fiscal I/II: 8.75 – 10.00 m op.',
           berths: [
@@ -3335,6 +5406,47 @@ export function buildAdditionalPortsData(images: {
           mapY: 56,
           imageType: 'pajaritos',
           cargoGroups: ['Hidrocarburos y Gas', 'Petroquímica y Líquidos'],
+          storageSummary: {
+            coveredSqm: 2000,
+            openYardSqm: 120000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Terminal Marítima y tanques de Refinería Antonio Dovalí Jaime conectada al oleoducto transístmico Nuevo Teapa–Salina Cruz y 3 Monoboyas Offshore en -24.0 m.',
+            warehousesBreakdownEn:
+              'Antonio Dovalí Jaime Refinery tank farm linked to Nuevo Teapa–Salina Cruz trunk pipeline plus 3 deep-water Offshore SPMs (-24.0 m).',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Complejo Petrolero Pacífico de PEMEX: Puerto Interior y Monoboyas Offshore (-24.0 m / Suezmax)',
+            positioningHeadlineEn:
+              'PEMEX Pacific Hydrocarbon Hub: Inner Refinery Berths & Deep-Water Offshore SPMs (-24.0 m)',
+            address: 'Puerto Interior PEMEX / Bahía La Ventosa, Salina Cruz, Oaxaca',
+            customsRegime: 'Terminal Marítima Estratégica PEMEX Logística · Aduana de Salina Cruz',
+            customsRegimeEn: 'PEMEX Logística Strategic Crude & Refined Terminal · Salina Cruz Customs',
+            commercialServices: [
+              'Exportación y recepción de crudo Istmo/Maya en Monoboya 3 (hasta 22.0 m calado / buques Suezmax/VLCC alijeados)',
+              'Cabotaje de gasolinas, diésel, turbosina y combustóleo hacia puertos del Pacífico mexicano desde Puerto Interior y SPM 1–2',
+            ],
+            commercialServicesEn: [
+              'Crude oil export/import at deep-water SPM 3 (up to 22.0 m draft / Suezmax & VLCC)',
+              'Pacific coast cabotage of gasoline, diesel, jet fuel & fuel oil from Refinería Dovalí Jaime',
+            ],
+            infrastructureHighlights: [
+              '3 Monoboyas Offshore hasta -24.0 m de profundidad (Monoboya 3 de 14–22 m calado, tasa 2,500–4,500 m³/h)',
+              'Puerto Interior PEMEX con muelles dedicados para buques producto (5.65–9.70 m)',
+            ],
+            infrastructureHighlightsEn: [
+              '3 Offshore SPM buoys in -24.0 m water depth (SPM 3 rated 14–22 m draft @ 2,500–4,500 m³/hr)',
+              'Inner PEMEX harbor berths serving Pacific coastal product tankers (5.65–9.70 m)',
+            ],
+            vesselTypesServed: ['Buques Crudo Suezmax / VLCC (SPM 3)', 'Tanqueros Producto MR1/MR2 (Puerto Interior)'],
+            vesselTypesServedEn: ['Suezmax / VLCC Crude Tankers (SPM 3)', 'MR1/MR2 Clean Product Tankers'],
+            connectivity: 'Oleoducto transístmico Nuevo Teapa (Coatzacoalcos) – Salina Cruz y Refinería Dovalí Jaime.',
+            connectivityEn: 'Trans-Isthmic pipeline Nuevo Teapa (Coatzacoalcos) – Salina Cruz & refinery feed.',
+            operationalAdvantages: ['Única terminal offshore en México con calado operativo hasta 22.0 m para exportación/descarga de crudo en el Pacífico.'],
+            operationalAdvantagesEn: ['Deepest crude mooring terminal in Pacific Mexico rated to 22.0 m operating draft.'],
+            certifications: ['OCIMF / SIRE', 'ISGOTT', 'SASISOPA / ASEA'],
+          },
           procedures: ['Vetting OCIMF/SIRE y verificación de límite operativo de marejada/viento para SPM.'],
           restrictionsSummary: 'Interior PEMEX: 5.65–9.70 m; Monoboya 3: 14.00–22.00 m.',
           berths: [
@@ -3485,6 +5597,55 @@ export function buildAdditionalPortsData(images: {
           mapY: 42,
           imageType: 'hero',
           cargoGroups: ['Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 18500,
+            openYardSqm: 32000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Complejos turísticos Puerta Maya (Carnival), SSA Muelle Internacional (>460 m para clases Oasis/Icon) y Punta Langosta centro con terminales de pasaje, duty-free y suministro certificado.',
+            warehousesBreakdownEn:
+              'Puerta Maya (Carnival), SSA International Pier (>460 m Oasis/Icon capable) & Punta Langosta passenger complexes with duty-free & provisioned staging.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Primer Destino de Cruceros de México y del Caribe (+4M Pasajeros/Año · Clases Oasis e Icon)',
+            positioningHeadlineEn:
+              'Mexico’s #1 Cruise Port Serving Oasis & Icon Class Mega-Liners (4M+ Pax/Year)',
+            address: 'Carretera Costera Sur Km 4.5 / Centro, Cozumel, Quintana Roo',
+            customsRegime: 'Recintos Portuarios de Pasaje (APIQROO · Puerta Maya · SSA · Punta Langosta) · Aduana Cancún/Cozumel',
+            customsRegimeEn: 'Authorized International Cruise Terminals · Cozumel Customs & INM Port Clearance',
+            commercialServices: [
+              'Atraque simultáneo de hasta 6 megacruceros en espigones en "T" de Puerta Maya (Carnival/HAL/Princess), SSA Internacional (Royal Caribbean Oasis/Icon >360 m) y Punta Langosta (Disney/NCL/MSC)',
+              'Operación logística de provisiones hoteleras, agua potable tratada y manejo certificado MARPOL bajo cero descarga arrecifal',
+              'Despacho migratorio ágil INM, sanidad internacional y coordinación de excursiones en Riviera Maya y Cozumel',
+            ],
+            commercialServicesEn: [
+              'Simultaneous berthing for up to 6 mega-ships across Puerta Maya, SSA International (>360 m Oasis/Icon class) & Punta Langosta',
+              'Provisioning logistics, potable water supply & strict zero-discharge MARPOL reef protection',
+              'Fast-track INM immigration, health clearance & shore excursion dispatch',
+            ],
+            infrastructureHighlights: [
+              'SSA Muelle Internacional (>460 m), Puerta Maya y Punta Langosta con calado operativo 10.5 m',
+              'Capacidad para megacruceros >362 m LOA y 7,000–9,500 pasajeros+tripulación',
+            ],
+            infrastructureHighlightsEn: [
+              'SSA International (>460 m), Puerta Maya & Punta Langosta T-piers at 10.5 m draft',
+              'Engineered for mega cruise vessels >362 m LOA carrying 7,000–9,500 pax & crew',
+            ],
+            vesselTypesServed: ['Megacruceros Oasis / Icon / Excel Class', 'Cruceros de Lujo y Expedición'],
+            vesselTypesServedEn: ['Oasis / Icon / Excel Class Mega Cruise Liners', 'Luxury & Expedition Cruise Ships'],
+            connectivity: 'Vialidad costera directa a Aeropuerto Internacional de Cozumel (CZM) y enlace ferry a Playa del Carmen.',
+            connectivityEn: 'Direct coastal road access to Cozumel International Airport (CZM) & mainland ferries.',
+            operationalAdvantages: [
+              'Cero fondeo necesario para 6 buques simultáneos gracias a espigones en aguas profundas.',
+              'Operación consolidada para las principales líneas globales de cruceros del Caribe.',
+            ],
+            operationalAdvantagesEn: [
+              'Up to 6 simultaneous alongside berths eliminating tendering delays.',
+              'Premier Western Caribbean turnaround and port-of-call logistics.',
+            ],
+            certifications: ['ISPS / PBIP', 'CONANP Arrecifes', 'Blue Flag / MARPOL'],
+          },
           procedures: [
             'Cero descargas de aguas residuales y cumplimiento estricto de protección arrecifal.',
             'Coordinar corriente norte del Canal de Yucatán durante atraque.',
@@ -3520,6 +5681,45 @@ export function buildAdditionalPortsData(images: {
           mapY: 60,
           imageType: 'channel',
           cargoGroups: ['Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 2800,
+            openYardSqm: 12000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Terminal de pasajeros San Miguel centro + patio de carga y rampa RoPax en Caletita para abasto diario de mercancías y combustible a la isla.',
+            warehousesBreakdownEn:
+              'San Miguel downtown passenger terminal + Caletita RoPax vehicle yard & ramp supplying daily island freight.',
+          },
+          commercialProfile: {
+            positioningHeadline: 'Enlace Vital de Ferries de Alta Velocidad y Abasto RoPax de Cozumel',
+            positioningHeadlineEn: 'Cozumel’s High-Frequency Passenger Ferry & Mainland Freight Supply Link',
+            address: 'Av. Rafael E. Melgar / Caletita, San Miguel de Cozumel, Q. Roo',
+            customsRegime: 'Terminal Marítima Estatal APIQROO · Tráfico de Cabotaje',
+            customsRegimeEn: 'APIQROO State Maritime Terminal · Coastal Cabotage',
+            commercialServices: [
+              'Tránsito continuo cada 30–60 min de pasajeros hacia Playa del Carmen',
+              'Carga rodada RoPax de camiones de alimentos, materiales, gas e insumos desde Calica / Punta Venado',
+            ],
+            commercialServicesEn: [
+              'High-frequency 30–60 min fast ferries connecting Playa del Carmen',
+              'Daily RoPax truck freight & essential island supply transfers from Calica / Punta Venado',
+            ],
+            infrastructureHighlights: [
+              '160 m en posiciones San Miguel / Caletita con rampa hidráulica RoRo a 4.5 m de calado',
+              'Edificio terminal de pasajeros climatizado en centro de Cozumel + patio logístico en Caletita',
+            ],
+            infrastructureHighlightsEn: [
+              '160 m San Miguel / Caletita berths with hydraulic RoPax ramp at 4.5 m draft',
+              'Air-conditioned downtown Cozumel ferry terminal plus Caletita island freight staging yard',
+            ],
+            vesselTypesServed: ['Catamaranes de alta velocidad', 'Transbordadores vehiculares RoPax'],
+            vesselTypesServedEn: ['High-Speed Passenger Catamarans', 'Coastal RoPax Cargo Ferries'],
+            connectivity: 'Conexión marítima directa al corredor Riviera Maya (Playa del Carmen / Calica).',
+            connectivityEn: 'Direct sea bridge to Riviera Maya mainland (Playa del Carmen / Calica).',
+            operationalAdvantages: ['Rotación continua de 30–45 minutos manteniendo la cadena de abasto insular.'],
+            operationalAdvantagesEn: ['30–45 minute fast turnaround sustaining island supply chains.'],
+            certifications: ['ISPS / PBIP', 'APIQROO'],
+          },
           procedures: ['Ventanas fijas cada 30 min para tráfico de pasajeros.'],
           restrictionsSummary: 'Calado máximo 4.5 m; velocidad máx. 6 kt dentro de dársena.',
           berths: [
@@ -3655,6 +5855,47 @@ export function buildAdditionalPortsData(images: {
           mapY: 48,
           imageType: 'channel',
           cargoGroups: ['Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 2200,
+            openYardSqm: 14000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Terminal de pasaje Puerto Juárez (Ultramar/APIQROO) y patio de embarque RoPax Punta Sam para autotransporte comercial hacia Isla Mujeres.',
+            warehousesBreakdownEn:
+              'Puerto Juárez fast-ferry passenger hall plus Punta Sam RoPax commercial truck marshaling yard serving Isla Mujeres.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Puerta Marítima del Caribe Norte: Ferries de Pasaje Puerto Juárez y RoPax Punta Sam',
+            positioningHeadlineEn:
+              'Northern Caribbean Maritime Hub: Puerto Juárez Fast Ferries & Punta Sam RoPax Supply',
+            address: 'Av. José López Portillo / Carretera a Punta Sam, Cancún, Quintana Roo',
+            customsRegime: 'Terminales Marítimas APIQROO · Tráfico de Cabotaje y Turismo Insular',
+            customsRegimeEn: 'APIQROO Maritime Passenger & Coastal Cabotage Terminals',
+            commercialServices: [
+              'Operación continua cada 30 min de catamaranes de pasaje Puerto Juárez – Isla Mujeres',
+              'Embarque vehicular y de carga comercial paletizada en rampa hidráulica RoPax de Punta Sam',
+            ],
+            commercialServicesEn: [
+              'Continuous 30-minute fast passenger ferry shuttles connecting Puerto Juárez & Isla Mujeres',
+              'Commercial freight truck, provisions & vehicle RoPax loading at Punta Sam ramp',
+            ],
+            infrastructureHighlights: [
+              '185 m de atraque combinado a 3.60 m de calado operativo con rampa RoPax en Punta Sam',
+              'Salas de abordaje en Puerto Juárez y patios de carga vehicular comercial en Punta Sam',
+            ],
+            infrastructureHighlightsEn: [
+              '185 m combined berthing at 3.60 m operational draft with hydraulic RoPax ramp at Punta Sam',
+              'Dedicated fast-ferry boarding concourses in Puerto Juárez and freight truck marshaling pads at Punta Sam',
+            ],
+            vesselTypesServed: ['Catamaranes de alta velocidad', 'Transbordadores vehiculares RoPax'],
+            vesselTypesServedEn: ['High-Speed Passenger Catamarans', 'RoPax Commercial Vehicle Ferries'],
+            connectivity: 'Conexión vial directa con Av. López Portillo, Arco Norte y Zona Hotelera de Cancún.',
+            connectivityEn: 'Direct link to Av. López Portillo, Arco Norte & Cancún Hotel Zone.',
+            operationalAdvantages: ['Frecuencias continuas garantizando el abasto hotelero y residencial de Isla Mujeres.'],
+            operationalAdvantagesEn: ['High-frequency departures sustaining Isla Mujeres tourism & commercial supply.'],
+            certifications: ['ISPS / PBIP', 'APIQROO'],
+          },
           procedures: ['Despacho diario de pasaje y vehículos conforme a boletín meteorológico de Capitanía.'],
           restrictionsSummary: 'Calado máx. 3.60 m; cierre preventivo a navegación menor con vientos > 22 kt.',
           berths: [
@@ -3790,6 +6031,49 @@ export function buildAdditionalPortsData(images: {
           mapY: 46,
           imageType: 'recintoSur',
           cargoGroups: ['Granel Mineral', 'Carga Proyecto', 'Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 3200,
+            openYardSqm: 68000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Plataformas 1, 2 y Plataforma 3 (-6.0 m) conectadas por viaducto de 1.45 km a patios terrestres en Seybaplaya para balasto, piedra caliza, carga proyecto y mantenimiento naval.',
+            warehousesBreakdownEn:
+              'Platforms 1, 2 & Platform 3 (-6.0 m) linked by 1.45 km trestle to onshore stockyards for limestone ballast, cement, heavy project cargo & ship repair.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Plataforma Industrial Costa Afuera APICAM (Plataformas 1–3) para Balasto, Carga Proyecto y Astillero',
+            positioningHeadlineEn:
+              'APICAM Offshore Trestle Port (Platforms 1–3) for Limestone Bulk, Heavy-Lift & Ship Repair',
+            address: 'Km 16.5 Carretera Campeche–Champotón, Seybaplaya, Campeche',
+            customsRegime: 'Recinto Portuario Estatal APICAM · Sección Aduanera Campeche/Seybaplaya',
+            customsRegimeEn: 'APICAM State Port Precinct · Campeche/Seybaplaya Customs',
+            commercialServices: [
+              'Operación en Plataformas 1, 2 y Plataforma 3 (-6.0 m) para piedra caliza, balasto ferroviario, cemento y clinker',
+              'Descarga de módulos industriales, carga proyecto peninsular (Tren Maya / energía) y soporte a flota OSV',
+              'Servicios de reparación naval, carenado menor y avituallamiento de barcazas y embarcaciones costa afuera',
+            ],
+            commercialServicesEn: [
+              'Dry bulk handling across Platforms 1, 2 & 3 (-6.0 m) for limestone aggregates, rail ballast, cement & clinker',
+              'Peninsular heavy project cargo discharge & Campeche Sound OSV offshore logistics',
+              'Afloat vessel repair, marine servicing & barge provisioning',
+            ],
+            infrastructureHighlights: [
+              'Viaducto marítimo de 1,450 m hacia plataformas multipropósito de 310 m de frente (calado 7.80 m)',
+              'Plataforma 3 dedicada a ampliación industrial, heavy-lift y mantenimiento naval',
+            ],
+            infrastructureHighlightsEn: [
+              '1,450 m offshore access trestle serving 310 m multi-platform quay (7.80 m op. draft)',
+              'Expanded Platform 3 engineered for offshore support, heavy-lift & ship repair',
+            ],
+            vesselTypesServed: ['Barcazas y Graneleros Costeros (hasta 145 m LOA)', 'Buques OSV / Carga Proyecto'],
+            vesselTypesServedEn: ['Coastal Bulkers & Barges (up to 145 m LOA)', 'OSV & Project Cargo Ships'],
+            connectivity: 'Conexión carretera Campeche–Champotón (Fed. 180) y cercanía a red logística Tren Maya.',
+            connectivityEn: 'Direct link to Campeche–Champotón Federal Hwy 180 & Tren Maya freight corridor.',
+            operationalAdvantages: ['Alternativa profunda del litoral de Campeche descongestionando el abasto de agregados y proyecto.'],
+            operationalAdvantagesEn: ['Deep coastal alternative relieving aggregate & project cargo pressure in Campeche.'],
+            certifications: ['ISPS / PBIP', 'APICAM'],
+          },
           procedures: ['Confirmar calado en boletín batimétrico APICAM y ventana diurna para esloras > 120 m.'],
           restrictionsSummary: 'Calado op. 7.80 m; carga eje restringida en viaducto carretero de acceso.',
           berths: [
@@ -3925,6 +6209,49 @@ export function buildAdditionalPortsData(images: {
           mapY: 46,
           imageType: 'pajaritos',
           cargoGroups: ['Hidrocarburos y Gas'],
+          storageSummary: {
+            coveredSqm: 1200,
+            openYardSqm: 95000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Terminal de Almacenamiento y Despacho PEMEX Rosarito con más de 1.3 millones de barriles en parque de tanques (incluyendo 130–155k bbl en capacidad abierta) y poliductos a Ensenada y Mexicali.',
+            warehousesBreakdownEn:
+              'PEMEX TAD Rosarito tank farm exceeding 1.3M bbl total capacity (130–155k bbl open-season storage) tied to Ensenada & Mexicali fuel pipelines.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal Energética Offshore CBM y Hub de Almacenamiento (>1.3M bbl) para Baja California',
+            positioningHeadlineEn:
+              'Offshore CBM Tanker Terminal & 1.3M+ bbl Fuel Storage Hub Supplying Baja California',
+            address: 'Km 21.5 Carretera Libre Tijuana–Ensenada, Playas de Rosarito, B.C.',
+            customsRegime: 'Terminal Marítima PEMEX Logística (TMAR / TAD Rosarito) · Aduana de Tijuana/Ensenada',
+            customsRegimeEn: 'PEMEX Logística Strategic Offshore Terminal (TMAR / TAD) · Baja Customs',
+            commercialServices: [
+              'Descarga costa afuera en Campo de Boyas Múltiples (CBM) de gasolinas, diésel automotriz, turbosina y combustóleo',
+              'Almacenamiento estratégico (>1.3M bbl totales) con capacidad regulada de acceso abierto (130–155k bbl)',
+              'Inyección directa por poliducto hacia Tijuana, Ensenada y Mexicali y llenaderas de autotanques',
+            ],
+            commercialServicesEn: [
+              'Offshore Multi-Buoy Mooring (CBM) unloading of gasoline, diesel, jet A-1 & heavy fuel oil',
+              'Strategic 1.3M+ bbl tank farm storage including open-access third-party capacity (130–155k bbl)',
+              'Direct pipeline distribution to Tijuana, Ensenada & Mexicali plus automated truck-loading racks',
+            ],
+            infrastructureHighlights: [
+              'Campo de boyas CBM de 7 puntos en aguas profundas (13.70 m calado op.) con 2 mangueras submarinas de 12"',
+              'Parque de tanques superior a 1.3 millones de barriles y red de poliductos interurbanos',
+            ],
+            infrastructureHighlightsEn: [
+              '7-point offshore CBM spread rated to 13.70 m draft with dual 12" subsea PLEM hoses',
+              '1.3M+ bbl onshore tank farm feeding regional Baja California pipelines',
+            ],
+            vesselTypesServed: ['Buques Tanque Producto MR1 / MR2 / Panamax (hasta ~60,000 DWT)', 'Abastecimiento cabotaje Pacífico'],
+            vesselTypesServedEn: ['MR1 / MR2 / Panamax Product Tankers (up to ~60,000 DWT)', 'Pacific Coastal Tankers'],
+            connectivity: 'Poliductos directos a Tijuana, Ensenada y Mexicali más Carretera Escénica Transpeninsular.',
+            connectivityEn: 'Trunk refined-product pipelines to Tijuana, Ensenada & Mexicali plus coastal highway.',
+            operationalAdvantages: ['Único punto de descarga petrolero de gran calado cercano a la zona metropolitana Tijuana–Mexicali.'],
+            operationalAdvantagesEn: ['Closest deep-water hydrocarbon offloading spread serving the Tijuana–Mexicali corridor.'],
+            certifications: ['OCIMF / SIRE', 'ISGOTT', 'ASEA / CRE'],
+          },
           procedures: [
             'Amarre a campo de boyas únicamente con luz solar y marejada < 2.2 m.',
             'Vetting SIRE / Q88 aprobado por PEMEX Logística y prueba de fondeo de anclas.',
@@ -4063,6 +6390,49 @@ export function buildAdditionalPortsData(images: {
           mapY: 44,
           imageType: 'recintoSur',
           cargoGroups: ['Granel Agrícola', 'Granel Mineral', 'Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 9500,
+            openYardSqm: 75000,
+            containerYardSqm: 28000,
+            warehousesBreakdown:
+              'Bodegas frigoríficas y de tránsito para banano/agroexportación del Soconusco, patios de clinker/cemento y contenedores refrigerados con tomas reefer.',
+            warehousesBreakdownEn:
+              'Reefer/transit sheds for Soconusco tropical produce exports, clinker/cement yards & reefer-equipped container pads.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Hub Agroindustrial, Refrigerado y Multipropósito del Pacífico Sur (Frontera Guatemala)',
+            positioningHeadlineEn:
+              'Southern Pacific Reefer Agro-Export & Multipurpose Gateway Near Guatemala Border',
+            address: 'Recinto Portuario de Puerto Chiapas, Tapachula, Chiapas',
+            customsRegime: 'Recinto Fiscal Portuario ASIPONA Puerto Chiapas · Aduana Ciudad Hidalgo / Tapachula',
+            customsRegimeEn: 'ASIPONA Puerto Chiapas Fiscal Port · Tapachula Customs',
+            commercialServices: [
+              'Exportación refrigerada (reefer y bodega fría) de banano, mango y productos agrícolas del Soconusco',
+              'Importación/cabotaje de maíz, soya, fertilizantes, azúcar, clinker y cemento en 430 m de TUM',
+              'Atención intermodal transfronteriza de contenedores hacia el sur de Chiapas y occidente de Guatemala',
+            ],
+            commercialServicesEn: [
+              'Cold-chain reefer exports (bananas, mangoes & Soconusco agribusiness)',
+              'Bulk stevedoring of corn, soy, fertilizers, sugar, clinker & cement across 430 m TUM',
+              'Cross-border container & breakbulk distribution serving Southern Chiapas & Western Guatemala',
+            ],
+            infrastructureHighlights: [
+              '430 m en Muelles 1 y 2 TUM a 9.80 m de calado operativo con grúas móviles y tomas reefer',
+              'Bodegas frigoríficas y de tránsito para perecederos del Soconusco + patios de clinker',
+            ],
+            infrastructureHighlightsEn: [
+              '430 m across Berths 1–2 TUM at 9.80 m draft with mobile cranes & reefer racks',
+              'Cold-storage transit warehouses for Soconusco produce plus dedicated clinker/cement staging pads',
+            ],
+            vesselTypesServed: ['Buques Frigoríficos / Reefer Containerships', 'Graneleros Costeros y Handysize'],
+            vesselTypesServedEn: ['Reefer Ships & Container Feeders', 'Handysize / Coastal Dry Bulkers'],
+            connectivity: 'Carretera Costera 200 hacia Tapachula, frontera con Guatemala y Corredor Interoceánico Línea K.',
+            connectivityEn: 'Coastal Hwy 200 to Tapachula, Guatemala border & Interoceanic Railway Line K.',
+            operationalAdvantages: ['Puerto estratégico más austral de México para exportaciones perecederas y carga centroamericana.'],
+            operationalAdvantagesEn: ['Mexico’s southernmost Pacific gateway ideal for reefer exports & Guatemala trade.'],
+            certifications: ['ISPS / PBIP', 'SENASICA'],
+          },
           procedures: ['Inspección fitosanitaria SENASICA y control de temperatura para carga reefer.'],
           restrictionsSummary: 'Calado op. 9.80 m; eslora máx. 210 m en dársena interior.',
           berths: [
@@ -4097,6 +6467,49 @@ export function buildAdditionalPortsData(images: {
           mapY: 60,
           imageType: 'pajaritos',
           cargoGroups: ['Hidrocarburos y Gas', 'Carga General y Contenedores'],
+          storageSummary: {
+            coveredSqm: 5500,
+            openYardSqm: 24000,
+            containerYardSqm: 0,
+            warehousesBreakdown:
+              'Terminal Turística de Cruceros, parque pesquero/atunero con cámaras de congelación y ducto de combustibles hacia TAR Tapachula.',
+            warehousesBreakdownEn:
+              'Cruise Welcome Terminal, industrial tuna cold storage & fuel pipeline to TAR Tapachula.',
+          },
+          commercialProfile: {
+            positioningHeadline:
+              'Terminal Internacional de Cruceros Ruta Centroamérica, Combustibles PEMEX y Parque Atunero',
+            positioningHeadlineEn:
+              'Central America Cruise Gateway, PEMEX Tapachula Fuel Berth & Tuna Fleet Complex',
+            address: 'Dársena Sur, Puerto Chiapas, Tapachula, Chiapas',
+            customsRegime: 'Terminal Turística Internacional y Muelle Fiscal PEMEX · Aduana Puerto Chiapas',
+            customsRegimeEn: 'International Cruise Terminal & PEMEX Fuel Jetty · Puerto Chiapas Customs',
+            commercialServices: [
+              'Recepción de cruceros internacionales en ruta Panamá–Acapulco con centro turístico y despacho INM',
+              'Descarga de diésel UBA y gasolinas para abastecimiento regional vía TAR Tapachula',
+              'Descarga y congelación de atún industrial en instalaciones frigoríficas de muelle',
+            ],
+            commercialServicesEn: [
+              'Central American corridor cruise calls with dedicated welcome pavilion & INM passenger clearance',
+              'Clean fuel imports (ULSD & gasoline) feeding TAR Tapachula distribution depot',
+              'Industrial tuna fleet discharge & dockside blast-freezing storage',
+            ],
+            infrastructureHighlights: [
+              '360 m de frente en Cruceros y PEMEX a 9.50 m calado op. y brazos marinos a 900 m³/h',
+              'Pabellón turístico internacional de cruceros, poliducto a TAR Tapachula y frigoríficos atuneros',
+            ],
+            infrastructureHighlightsEn: [
+              '360 m combined Cruise & PEMEX quay at 9.50 m op. draft with 900 m³/hr marine arms',
+              'International cruise welcome pavilion, TAR Tapachula fuel pipeline and tuna blast-freeze storage',
+            ],
+            vesselTypesServed: ['Cruceros Internacionales (hasta 245 m LOA)', 'Tanqueros Costeros PEMEX y Atuneros'],
+            vesselTypesServedEn: ['International Cruise Ships (up to 245 m LOA)', 'Coastal Tankers & Tuna Seiners'],
+            connectivity: 'Enlace carretero directo a Tapachula, Izapa y Aeropuerto Internacional TAP.',
+            connectivityEn: 'Direct highway access to Tapachula, Izapa archaeological zone & TAP Airport.',
+            operationalAdvantages: ['Atención integral turística y energética en un puerto protegido por escolleras de 1.75 km.'],
+            operationalAdvantagesEn: ['Combined passenger & regional fuel logistics inside a breakwater-sheltered basin.'],
+            certifications: ['ISPS / PBIP', 'OCIMF / SIRE (PEMEX)', 'Sanidad Internacional'],
+          },
           procedures: ['Prioridad de atraque para itinerarios programados de cruceros; checklist ISGOTT en PEMEX.'],
           restrictionsSummary: 'Calado op. 9.50 m en Cruceros / 8.50 m en PEMEX; control por mar de fondo.',
           berths: [
@@ -4215,6 +6628,8 @@ export function buildAdditionalPortsData(images: {
       mapY: t.mapY,
       imageUrl: resolveImage(t.imageType),
       cargoGroups: t.cargoGroups,
+      storageSummary: t.storageSummary,
+      commercialProfile: t.commercialProfile,
       berths: t.berths.map(
         (b): Berth => ({
           id: `berth-${bp.id}-${b.idSuffix}`,
@@ -4237,7 +6652,7 @@ export function buildAdditionalPortsData(images: {
       procedures: t.procedures,
       restrictionsSummary: t.restrictionsSummary,
       audit: {
-        updatedAt: '2026-11-19',
+        updatedAt: '2026-11-26',
         updatedBy: 'ISS Port Intelligence Hub',
         source: `ASIPONA ${bp.name.replace('Puerto de ', '')} · Reglas de Operación (${bp.lineupConnector})`,
         verificationStatus: 'verified',
@@ -4289,6 +6704,7 @@ export function buildAdditionalPortsData(images: {
       notes: 'Tarifa referencial editable en Content Manager según tabulador ASIPONA vigente.',
       verificationStatus: 'pending_validation',
       active: true,
+      chargeSection: 'port' as const,
     },
     {
       id: `tar-${bp.id}-berth`,
@@ -4305,6 +6721,7 @@ export function buildAdditionalPortsData(images: {
       notes: 'Base por metro de eslora total (LOA).',
       verificationStatus: 'pending_validation',
       active: true,
+      chargeSection: 'port' as const,
     },
     {
       id: `tar-${bp.id}-pilot`,
@@ -4321,6 +6738,7 @@ export function buildAdditionalPortsData(images: {
       notes: 'Referencia maniobra diurna estándar.',
       verificationStatus: 'pending_validation',
       active: true,
+      chargeSection: 'port' as const,
     },
     {
       id: `tar-${bp.id}-tug`,
@@ -4337,6 +6755,7 @@ export function buildAdditionalPortsData(images: {
       notes: 'Tarifa referencial por hora-remolcador.',
       verificationStatus: 'pending_validation',
       active: true,
+      chargeSection: 'port' as const,
     },
     {
       id: `tar-${bp.id}-agy`,
@@ -4353,6 +6772,7 @@ export function buildAdditionalPortsData(images: {
       notes: 'Confirmar acuerdo comercial con cliente.',
       verificationStatus: 'pending_validation',
       active: true,
+      chargeSection: 'agency' as const,
     },
   ]);
 

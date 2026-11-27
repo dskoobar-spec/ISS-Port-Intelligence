@@ -184,46 +184,9 @@ export function PierSpecificationCard({
         </svg>
 
         {/* Hero Foreground Content */}
-        <div className="relative z-10 px-6 sm:px-9 pt-5 pb-11 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="relative z-10 px-6 sm:px-9 pt-5 pb-11 flex flex-col sm:flex-row sm:items-stretch justify-between gap-4">
           <div className="max-w-2xl">
-            {/* INCHCAPE SHIPPING SERVICES Wordmark */}
-            <div className="inline-flex items-center gap-2.5">
-              <div>
-                <div className="font-display text-[21px] sm:text-[24px] font-extrabold tracking-tight text-white leading-none">
-                  {sheet.brandPrimary || 'INCHCAPE'}
-                </div>
-                <div className="text-[8.5px] font-bold tracking-[0.22em] text-[#ef4444] ml-6 mt-0.5 leading-none">
-                  {sheet.brandSecondary || 'SHIPPING SERVICES'}
-                </div>
-              </div>
-              <svg
-                viewBox="0 0 28 32"
-                aria-hidden="true"
-                className="w-6 h-7 text-white shrink-0"
-                fill="none"
-              >
-                <path
-                  d="M4 4 C18 6 22 18 11 29"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M11 8 C20 11 22 19 16 26"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M7 11 L20 7"
-                  stroke="#ef4444"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-
-            <div className="w-24 h-[2.5px] bg-[#f59e0b] my-2.5" />
+            <div className="w-24 h-[2.5px] bg-[#f59e0b] mb-2.5" />
 
             <div className="text-[11px] sm:text-[12px] font-medium tracking-[0.18em] text-[#dbeafe] uppercase">
               {sheet.subtitle}
@@ -258,14 +221,69 @@ export function PierSpecificationCard({
             </div>
           </div>
 
-          {/* Right Motto */}
-          <div className="hidden sm:block text-right shrink-0 mb-2">
-            <div className="text-[10.5px] font-semibold tracking-[0.14em] text-white uppercase leading-[1.45]">
-              {mottoLines.map((line, i) => (
-                <div key={i}>{line}</div>
-              ))}
+          {/* Top-Right Integrated Brand Emblem + Bottom-Right Motto */}
+          <div className="flex sm:flex-col justify-between items-start sm:items-end shrink-0 gap-3 mb-1">
+            <svg
+              viewBox="0 0 240 78"
+              aria-label={`${sheet.brandPrimary || 'INCHCAPE'} ${sheet.brandSecondary || 'SHIPPING SERVICES'}`}
+              className="w-44 sm:w-52 h-auto drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]"
+            >
+              <text
+                x="12"
+                y="48"
+                fontFamily="Plus Jakarta Sans, Arial, sans-serif"
+                fontWeight="800"
+                fontSize="25"
+                fill="#ffffff"
+                letterSpacing="1"
+              >
+                {sheet.brandPrimary || 'INCHCAPE'}
+              </text>
+              <polygon points="103,29 109,43 97,43" fill="#e11d48" />
+              <text
+                x="42"
+                y="64"
+                fontFamily="Plus Jakarta Sans, Arial, sans-serif"
+                fontWeight="700"
+                fontSize="9.5"
+                fill="#e11d48"
+                letterSpacing="2.4"
+              >
+                {sheet.brandSecondary || 'SHIPPING SERVICES'}
+              </text>
+              <path
+                d="M164 26 A31 31 0 1 1 196 68"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="4.2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M169 29 A24 24 0 1 1 194 62"
+                fill="none"
+                stroke="#cbd5e1"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              />
+              <path
+                d="M174 33 A18 18 0 1 1 191 56"
+                fill="none"
+                stroke="#94a3b8"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+              <polygon points="215,10 203,20 207,24" fill="#e11d48" />
+              <path d="M180 34 L204 20 L195 45 L193 33 Z" fill="#ffffff" />
+            </svg>
+
+            <div className="hidden sm:block text-right mt-auto">
+              <div className="text-[10.5px] font-semibold tracking-[0.14em] text-white uppercase leading-[1.45] drop-shadow-[0_1px_3px_rgba(0,0,0,0.65)]">
+                {mottoLines.map((line, i) => (
+                  <div key={i}>{line}</div>
+                ))}
+              </div>
+              <div className="w-16 h-[2.5px] bg-[#f59e0b] ml-auto mt-2" />
             </div>
-            <div className="w-16 h-[2.5px] bg-[#f59e0b] ml-auto mt-2" />
           </div>
         </div>
 

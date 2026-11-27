@@ -11,8 +11,14 @@ import {
   Upload,
   X,
 } from 'lucide-react';
-import { PAJARITOS_IMAGE_PATH, RECINTO_SUR_IMAGE_PATH } from '../data/coatzacoalcosSeed';
+import {
+  INITIAL_HUB_STATE,
+  PAJARITOS_IMAGE_PATH,
+  RECINTO_SUR_IMAGE_PATH,
+} from '../data/coatzacoalcosSeed';
 import { compressImageFileToDataUrl } from '../utils/imageUpload';
+import { resolveDocumentLinkUrl } from '../utils/driveLinks';
+import { normalizeChargeSection } from '../utils/pdaEngine';
 import { buildDefaultPierSheetFromBerth } from '../utils/pierSheetExporter';
 import {
   DIR_CATEGORY_LABELS,
@@ -26,8 +32,11 @@ import {
 import type {
   AnchorageZone,
   AppsScriptTool,
+  AuthorityAgency,
+  AuthorityRequirement,
   Berth,
   ConcessionaireTerminal,
+  CrewChangeGuideConfig,
   DirectoryCategory,
   DirectoryEntry,
   HubState,
@@ -37,6 +46,16 @@ import type {
   OperationalProcedure,
   OpticConcept,
   OrgChartNode,
+  OrgCustomField,
+  OrgSubDepartment,
+  PdaChargeSection,
+  PdaFormatPreset,
+  PdaFormulaType,
+  PdaOfficeAndBankProfile,
+  PdaPurpose,
+  PdaSubItemCalcMode,
+  PdaSubItemDef,
+  PdaVesselType,
   PhysicalRestrictionSpec,
   PierProductCondition,
   PierSpecificationSheet,
@@ -46,23 +65,62 @@ import type {
   PortServiceItem,
   PortStatusEvent,
   ProductHandlingSpec,
+  ProductTechnicalDossier,
+  SparePartsProcedureConfig,
+  StorageSummary,
   TariffItem,
   TariffUnit,
   Terminal,
+  TerminalCommercialProfile,
   VesselLineupEntry,
   VesselStatus,
   WeatherStatus,
 } from '../types/port';
+
+const PDA_VESSEL_TYPE_OPTIONS: PdaVesselType[] = [
+  'Tanker / Chemical',
+  'Crude / Aframax',
+  'Gas Carrier (LPG/Ethane)',
+  'Dry Bulk',
+  'General Cargo / Steel',
+  'Container',
+  'Rail Ferry',
+  'Offshore',
+];
+
+const PDA_FORMULA_OPTIONS: { id: PdaFormulaType; label: string }[] = [
+  { id: 'standard', label: 'Estándar (Qty × Tarifa)' },
+  { id: 'port_dues_hybrid', label: 'Port Dues ((GRT×Factor + Fijo) + IVA)' },
+  { id: 'dockage_loa_hours', label: 'Muellaje (LOA × Tarifa × Hrs + IVA)' },
+  { id: 'pilotage_gt_movements', label: 'Practicaje (GRT × Factor × Mov + IVA)' },
+  { id: 'towage_tugs', label: 'Remolque (Tarifa × Hrs × Remolcadores + IVA)' },
+  { id: 'agency_extra_days', label: 'Días Adicionales (> Días Incl.)' },
+  { id: 'flat_with_vat', label: 'Cuota Fija + IVA' },
+  { id: 'sub_items_breakdown', label: 'Desglose por Sub-servicios (Qty × Tarifa)' },
+  { id: 'custom_expression', label: 'Fórmula Personalizada' },
+];
+
+const PDA_PURPOSE_OPTIONS: PdaPurpose[] = [
+  'DISCHARGE',
+  'LOAD',
+  'LOAD & DISCHARGE',
+  'BUNKERING',
+  'CREW CHANGE',
+  'REPAIRS',
+  'ANCHORAGE',
+];
 
 export type ManagerTab =
   | 'port'
   | 'weather'
   | 'channels'
   | 'terminals'
+  | 'products'
   | 'restrictions'
   | 'services'
   | 'lineup'
   | 'tariffs'
+  | 'authorities'
   | 'directory'
   | 'apps';
 
@@ -74,6 +132,7 @@ interface ContentManagerModalProps {
   initialTab?: ManagerTab;
   initialTerminalId?: string;
   initialBerthId?: string;
+  initialDossierId?: string;
   onUpdateState: (updater: (prev: HubState) => HubState) => void;
   onResetSeed: () => void;
   onClose: () => void;
@@ -201,6 +260,7 @@ export function ContentManagerModal({
   initialTab = 'port',
   initialTerminalId,
   initialBerthId,
+  initialDossierId,
   onUpdateState,
   onResetSeed,
   onClose,
@@ -208,6 +268,7 @@ export function ContentManagerModal({
   const [tab, setTab] = useState<ManagerTab>(initialTab);
   const [savedNotice, setSavedNotice] = useState('');
   const [expandedPierSheetBerthId, setExpandedPierSheetBerthId] = useState<string | null>(null);
+  const [showCommercialEditor, setShowCommercialEditor] = useState(false);
 
   const activePort = hubState.ports.find((p) => p.id === portId);
   const portAreas = hubState.areas.filter((a) => a.portId === portId);
@@ -217,13 +278,17 @@ export function ContentManagerModal({
   const portLineup = (hubState.lineup ?? []).filter((v) => v.portId === portId);
   const activeWeather = hubState.weather.find((w) => w.portId === portId);
   const portHistory = (hubState.statusHistory ?? []).filter((h) => h.portId === portId);
+  const portDossiers = (hubState.productDossiers ?? []).filter((d) => d.portId === portId);
   const portDirectory = hubState.directory.filter(
     (d) => d.portId === portId || d.category === 'CLS_HUB' || d.category === 'Dow_Jones'
   );
 
-  // Selected terminal for editing
+  // Selected terminal & product dossier for editing
   const [selectedEditTermId, setSelectedEditTermId] = useState<string>(
     initialTerminalId ?? portTerminals[0]?.id ?? ''
+  );
+  const [selectedDossierId, setSelectedDossierId] = useState<string>(
+    initialDossierId ?? portDossiers[0]?.id ?? ''
   );
 
   useEffect(() => {
@@ -235,14 +300,23 @@ export function ContentManagerModal({
       if (initialBerthId) {
         setExpandedPierSheetBerthId(initialBerthId);
       }
+      if (initialDossierId && portDossiers.some((d) => d.id === initialDossierId)) {
+        setSelectedDossierId(initialDossierId);
+      }
     }
-  }, [open, initialTab, initialTerminalId, initialBerthId, portTerminals]);
+  }, [open, initialTab, initialTerminalId, initialBerthId, initialDossierId, portTerminals, portDossiers]);
 
   useEffect(() => {
     if (!portTerminals.some((t) => t.id === selectedEditTermId)) {
       setSelectedEditTermId(portTerminals[0]?.id ?? '');
     }
   }, [portId, portTerminals, selectedEditTermId]);
+
+  useEffect(() => {
+    if (!portDossiers.some((d) => d.id === selectedDossierId)) {
+      setSelectedDossierId(portDossiers[0]?.id ?? '');
+    }
+  }, [portId, portDossiers, selectedDossierId]);
 
   const [termAreaId, setTermAreaId] = useState(portAreas[0]?.id ?? '');
   useEffect(() => {
@@ -284,6 +358,17 @@ export function ContentManagerModal({
   const [newTariffUnit, setNewTariffUnit] = useState<TariffUnit>('flat');
   const [newTariffRate, setNewTariffRate] = useState(500);
   const [newTariffCurrency, setNewTariffCurrency] = useState<'USD' | 'MXN'>('USD');
+  const [newTariffSection, setNewTariffSection] = useState<PdaChargeSection>('port');
+  const [newTariffFormula, setNewTariffFormula] = useState<PdaFormulaType>('flat_with_vat');
+  const [newTariffCustomFormula, setNewTariffCustomFormula] = useState('grt * rate * 1.16');
+  const [newTariffVatPct, setNewTariffVatPct] = useState(16);
+
+  // New PDA Format Preset form
+  const [newFormatName, setNewFormatName] = useState('');
+  const [newFormatVesselType, setNewFormatVesselType] = useState<PdaVesselType>('Tanker / Chemical');
+  const [newFormatPurpose, setNewFormatPurpose] = useState<PdaPurpose>('DISCHARGE');
+  const [newFormatCargo, setNewFormatCargo] = useState('CARGO');
+  const [newFormatQty, setNewFormatQty] = useState(10000);
 
   // New Service form
   const [newSrvName, setNewSrvName] = useState('');
@@ -515,6 +600,68 @@ export function ContentManagerModal({
       ),
     }));
     notifySaved(lang === 'es' ? 'Terminal actualizada.' : 'Terminal updated.');
+  };
+
+  const handleUpdateTerminalStorage = (
+    termId: string,
+    patch: Partial<StorageSummary>
+  ) => {
+    onUpdateState((prev) => ({
+      ...prev,
+      terminals: prev.terminals.map((t) => {
+        if (t.id !== termId) return t;
+        const base: StorageSummary = t.storageSummary ?? {
+          coveredSqm: 0,
+          openYardSqm: 0,
+          containerYardSqm: 0,
+          warehousesBreakdown: '',
+          warehousesBreakdownEn: '',
+        };
+        return { ...t, storageSummary: { ...base, ...patch } };
+      }),
+    }));
+    notifySaved(
+      lang === 'es' ? 'Almacenaje de terminal actualizado.' : 'Terminal storage updated.'
+    );
+  };
+
+  const handleUpdateTerminalCommercial = (
+    termId: string,
+    patch: Partial<TerminalCommercialProfile>
+  ) => {
+    onUpdateState((prev) => ({
+      ...prev,
+      terminals: prev.terminals.map((t) => {
+        if (t.id !== termId) return t;
+        const base: TerminalCommercialProfile = t.commercialProfile ?? {
+          positioningHeadline: t.name,
+          positioningHeadlineEn: t.nameEn ?? t.name,
+          address: '',
+          customsRegime: '',
+          customsRegimeEn: '',
+          commercialServices: [],
+          commercialServicesEn: [],
+          infrastructureHighlights: [],
+          infrastructureHighlightsEn: [],
+          vesselTypesServed: [],
+          vesselTypesServedEn: [],
+          connectivity: '',
+          connectivityEn: '',
+          customsProcess: [],
+          customsProcessEn: [],
+          operationalAdvantages: [],
+          operationalAdvantagesEn: [],
+          keyClientsOrTrades: [],
+          certifications: [],
+        };
+        return { ...t, commercialProfile: { ...base, ...patch } };
+      }),
+    }));
+    notifySaved(
+      lang === 'es'
+        ? 'Perfil comercial de terminal actualizado.'
+        : 'Terminal commercial profile updated.'
+    );
   };
 
   const handleDeleteTerminal = (termId: string) => {
@@ -785,11 +932,20 @@ export function ContentManagerModal({
     const newConc: ConcessionaireTerminal = {
       id: `conc-${Date.now()}`,
       name: 'Nuevo Cesionario / Área Operativa',
+      coordinates: "18°08'22\"N · 94°24'55\"W",
       cargoCategory: 'Carga especializada',
       cargoCategoryEn: 'Specialized cargo',
       berthsUsed: 'Muelles asignados',
       infrastructure: 'Infraestructura y capacidad de transferencia.',
       infrastructureEn: 'Transfer infrastructure and storage capacity.',
+      restrictions: 'Cumplir lista de verificación portuaria, ISGOTT y Reglas de Operación vigentes.',
+      restrictionsEn: 'Comply with port checklist, ISGOTT and current Port Operations Rules.',
+      procedures: [
+        'Reunión pre-operativa y verificación de conexiones/mangueras.',
+      ],
+      proceduresEn: [
+        'Pre-transfer conference and manifold/hose inspection.',
+      ],
     };
     onUpdateState((prev) => ({
       ...prev,
@@ -1132,6 +1288,15 @@ export function ContentManagerModal({
       notesEn: 'Registered via Content Manager',
       verificationStatus: 'pending_validation',
       active: true,
+      chargeSection: newTariffSection,
+      formulaType: newTariffFormula,
+      customFormula:
+        newTariffFormula === 'custom_expression'
+          ? newTariffCustomFormula.trim()
+          : undefined,
+      vatRate: Math.max(0, newTariffVatPct / 100),
+      applicableVesselTypes: 'ALL',
+      applicablePurposes: 'ALL',
     };
     onUpdateState((prev) => ({
       ...prev,
@@ -1142,6 +1307,51 @@ export function ContentManagerModal({
     notifySaved(lang === 'es' ? 'Nueva tarifa agregada.' : 'New tariff added.');
   };
 
+  const handleAddPdaFormat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFormatName.trim()) return;
+    const preset: PdaFormatPreset = {
+      id: `fmt-${Date.now()}`,
+      portId,
+      name: newFormatName.trim(),
+      nameEn: newFormatName.trim(),
+      vesselType: newFormatVesselType,
+      purpose: newFormatPurpose,
+      defaultCargo: newFormatCargo.trim() || 'GENERAL CARGO',
+      defaultQuantity: Math.max(0, newFormatQty),
+      defaultOpsRateMtHr: 150,
+      defaultTugsCount: 2,
+      defaultTugHours: 1.5,
+      defaultMovements: 2,
+    };
+    onUpdateState((prev) => ({
+      ...prev,
+      pdaFormats: [...(prev.pdaFormats ?? []), preset],
+    }));
+    setNewFormatName('');
+    notifySaved(lang === 'es' ? 'Formato PDA agregado.' : 'PDA format preset added.');
+  };
+
+  const handleDeletePdaFormat = (formatId: string) => {
+    onUpdateState((prev) => ({
+      ...prev,
+      pdaFormats: (prev.pdaFormats ?? []).filter((f) => f.id !== formatId),
+    }));
+  };
+
+  const handleUpdateOfficeProfile = (patch: Partial<PdaOfficeAndBankProfile>) => {
+    const base =
+      hubState.pdaOfficeProfile ?? INITIAL_HUB_STATE.pdaOfficeProfile!;
+    onUpdateState((prev) => ({
+      ...prev,
+      pdaOfficeProfile: {
+        ...(prev.pdaOfficeProfile ?? base),
+        ...patch,
+      },
+    }));
+    notifySaved(lang === 'es' ? 'Datos de oficina y banco guardados.' : 'Office & bank profile saved.');
+  };
+
   // OrgChart & Directory
   const handleUpdateOrgNode = (id: string, patch: Partial<OrgChartNode>) => {
     onUpdateState((prev) => ({
@@ -1149,6 +1359,199 @@ export function ContentManagerModal({
       orgChart: (prev.orgChart ?? []).map((n) => (n.id === id ? { ...n, ...patch } : n)),
     }));
     notifySaved(lang === 'es' ? 'Nodo de organigrama actualizado.' : 'Org chart updated.');
+  };
+
+  const handleMoveOrgNode = (id: string, dir: -1 | 1) => {
+    onUpdateState((prev) => {
+      const list = [...(prev.orgChart ?? [])];
+      const idx = list.findIndex((n) => n.id === id);
+      const target = idx + dir;
+      if (idx < 0 || target < 0 || target >= list.length) return prev;
+      const [item] = list.splice(idx, 1);
+      list.splice(target, 0, item);
+      return { ...prev, orgChart: list };
+    });
+  };
+
+  const handleAddOrgNodeRelative = (refNode: OrgChartNode, mode: 'sibling' | 'child') => {
+    const nextLevel =
+      mode === 'sibling'
+        ? refNode.level
+        : (Math.min(3, refNode.level + 1) as 1 | 2 | 3);
+    const newNode: OrgChartNode = {
+      id: `org-${Date.now()}`,
+      level: nextLevel,
+      title: mode === 'sibling' ? 'Nueva Jefatura / Posición' : 'Nuevo Subnivel Operativo',
+      titleEn: mode === 'sibling' ? 'New Position' : 'New Sub-level Role',
+      department: refNode.department,
+      departmentEn: refNode.departmentEn,
+      holderOrTeam: 'Por asignar',
+      holderOrTeamEn: 'To be assigned',
+      email: 'ops@iss-shipping.com',
+      reportsTo: mode === 'sibling' ? refNode.reportsTo : refNode.id,
+      subDepartments: [],
+      customFields: [],
+    };
+    onUpdateState((prev) => {
+      const list = [...(prev.orgChart ?? [])];
+      const idx = list.findIndex((n) => n.id === refNode.id);
+      if (idx === -1) {
+        return { ...prev, orgChart: [...list, newNode] };
+      }
+      list.splice(idx + 1, 0, newNode);
+      return { ...prev, orgChart: list };
+    });
+    notifySaved(
+      mode === 'sibling'
+        ? lang === 'es'
+          ? 'Nodo agregado en la misma línea.'
+          : 'Sibling node added.'
+        : lang === 'es'
+        ? 'Subnodo / subnivel agregado.'
+        : 'Child sub-node added.'
+    );
+  };
+
+  const handleDeleteOrgNode = (id: string) => {
+    onUpdateState((prev) => ({
+      ...prev,
+      orgChart: (prev.orgChart ?? []).filter((n) => n.id !== id),
+    }));
+  };
+
+  const handleAddOrgSubDept = (nodeId: string) => {
+    const newSub: OrgSubDepartment = {
+      id: `sub-${Date.now()}`,
+      name: 'Nuevo Subdepartamento',
+      nameEn: 'New Sub-department',
+      leadOrTeam: 'Responsable / Turno',
+      leadOrTeamEn: 'Lead / Team',
+      email: '',
+      fields: [],
+    };
+    onUpdateState((prev) => ({
+      ...prev,
+      orgChart: (prev.orgChart ?? []).map((n) =>
+        n.id === nodeId
+          ? { ...n, subDepartments: [...(n.subDepartments ?? []), newSub] }
+          : n
+      ),
+    }));
+  };
+
+  const handleUpdateOrgSubDept = (
+    nodeId: string,
+    subId: string,
+    patch: Partial<OrgSubDepartment>
+  ) => {
+    onUpdateState((prev) => ({
+      ...prev,
+      orgChart: (prev.orgChart ?? []).map((n) =>
+        n.id === nodeId
+          ? {
+              ...n,
+              subDepartments: (n.subDepartments ?? []).map((s) =>
+                s.id === subId ? { ...s, ...patch } : s
+              ),
+            }
+          : n
+      ),
+    }));
+  };
+
+  const handleDeleteOrgSubDept = (nodeId: string, subId: string) => {
+    onUpdateState((prev) => ({
+      ...prev,
+      orgChart: (prev.orgChart ?? []).map((n) =>
+        n.id === nodeId
+          ? {
+              ...n,
+              subDepartments: (n.subDepartments ?? []).filter((s) => s.id !== subId),
+            }
+          : n
+      ),
+    }));
+  };
+
+  const handleAddOrgCustomField = (nodeId: string, subId?: string) => {
+    const field: OrgCustomField = {
+      id: `ocf-${Date.now()}`,
+      label: 'Campo',
+      value: 'Valor',
+    };
+    onUpdateState((prev) => ({
+      ...prev,
+      orgChart: (prev.orgChart ?? []).map((n) => {
+        if (n.id !== nodeId) return n;
+        if (subId) {
+          return {
+            ...n,
+            subDepartments: (n.subDepartments ?? []).map((s) =>
+              s.id === subId ? { ...s, fields: [...(s.fields ?? []), field] } : s
+            ),
+          };
+        }
+        return { ...n, customFields: [...(n.customFields ?? []), field] };
+      }),
+    }));
+  };
+
+  const handleUpdateOrgCustomField = (
+    nodeId: string,
+    fieldId: string,
+    patch: Partial<OrgCustomField>,
+    subId?: string
+  ) => {
+    onUpdateState((prev) => ({
+      ...prev,
+      orgChart: (prev.orgChart ?? []).map((n) => {
+        if (n.id !== nodeId) return n;
+        if (subId) {
+          return {
+            ...n,
+            subDepartments: (n.subDepartments ?? []).map((s) =>
+              s.id === subId
+                ? {
+                    ...s,
+                    fields: (s.fields ?? []).map((f) =>
+                      f.id === fieldId ? { ...f, ...patch } : f
+                    ),
+                  }
+                : s
+            ),
+          };
+        }
+        return {
+          ...n,
+          customFields: (n.customFields ?? []).map((f) =>
+            f.id === fieldId ? { ...f, ...patch } : f
+          ),
+        };
+      }),
+    }));
+  };
+
+  const handleDeleteOrgCustomField = (nodeId: string, fieldId: string, subId?: string) => {
+    onUpdateState((prev) => ({
+      ...prev,
+      orgChart: (prev.orgChart ?? []).map((n) => {
+        if (n.id !== nodeId) return n;
+        if (subId) {
+          return {
+            ...n,
+            subDepartments: (n.subDepartments ?? []).map((s) =>
+              s.id === subId
+                ? { ...s, fields: (s.fields ?? []).filter((f) => f.id !== fieldId) }
+                : s
+            ),
+          };
+        }
+        return {
+          ...n,
+          customFields: (n.customFields ?? []).filter((f) => f.id !== fieldId),
+        };
+      }),
+    }));
   };
 
   const handleUpdateDirectory = (id: string, patch: Partial<DirectoryEntry>) => {
@@ -1220,6 +1623,76 @@ export function ContentManagerModal({
     notifySaved(lang === 'es' ? 'Enlace Apps Script guardado.' : 'Apps Script link saved.');
   };
 
+  // Product Technical Dossiers CRUD
+  const editingDossier =
+    portDossiers.find((d) => d.id === selectedDossierId) ?? portDossiers[0];
+
+  const handleAddProductDossier = () => {
+    const newId = `prod-${portId}-${Date.now()}`;
+    const newDossier: ProductTechnicalDossier = {
+      id: newId,
+      portId,
+      code: `${activePort.shortCode}-PROD-NEW`,
+      name: 'Nuevo Producto Portuario',
+      nameEn: 'New Port Commodity',
+      cargoGroup: 'Petroquímica y Líquidos',
+      unNumber: 'N/A',
+      imoClass: 'No peligroso / Por confirmar',
+      coatzacoalcosBerths: 'Por asignar',
+      concessionaires: 'ASIPONA / Cesionario',
+      summary: 'Ficha técnica operativa creada desde Content Manager.',
+      summaryEn: 'Operational technical dossier created in Content Manager.',
+      identity: 'Identidad química/física del producto portuario.',
+      identityEn: 'Chemical/physical identity of port commodity.',
+      stateAndHazard: 'Estado de agregación y clasificación de riesgo operativo.',
+      stateAndHazardEn: 'Physical state and operational hazard classification.',
+      compatibility: 'Verificar compatibilidad con líneas y tanques receptores.',
+      compatibilityEn: 'Verify compatibility with receiving lines and tanks.',
+      qualityControl: 'Certificado de origen y muestreo inicial de línea/tanque.',
+      qualityControlEn: 'Certificate of origin and initial line/tank sampling.',
+      temperatureLimits: 'Temperatura ambiente o rango contractual.',
+      temperatureLimitsEn: 'Ambient temperature or contractual range.',
+      connectionSpecs: 'Brida ANSI 150# o equipo de descarga dedicado.',
+      connectionSpecsEn: 'ANSI 150# flange or dedicated transfer gear.',
+      transferRates: 'Por confirmar con terminal.',
+      transferRatesEn: 'To be confirmed with terminal.',
+      stabilityControl: 'Control operativo estándar MARPOL / terminal.',
+      stabilityControlEn: 'Standard MARPOL / terminal operational control.',
+      terminationProcedure: 'Barrido / drenaje completo al concluir descarga.',
+      terminationProcedureEn: 'Complete line draining / purging at completion.',
+      rejectionCriteria: 'Contaminación cruzada, fuera de especificación o falla de seguridad.',
+      rejectionCriteriaEn: 'Cross-contamination, off-spec parameter or safety non-compliance.',
+      referenceSource: 'Content Manager · Registro operativo ISS',
+      verificationStatus: 'pending_validation',
+    };
+    onUpdateState((prev) => ({
+      ...prev,
+      productDossiers: [newDossier, ...(prev.productDossiers ?? [])],
+    }));
+    setSelectedDossierId(newId);
+    notifySaved(lang === 'es' ? 'Nueva ficha técnica de producto creada.' : 'New product dossier created.');
+  };
+
+  const handleUpdateProductDossier = (
+    dossierId: string,
+    patch: Partial<ProductTechnicalDossier>
+  ) => {
+    onUpdateState((prev) => ({
+      ...prev,
+      productDossiers: (prev.productDossiers ?? []).map((d) =>
+        d.id === dossierId ? { ...d, ...patch } : d
+      ),
+    }));
+    notifySaved(lang === 'es' ? 'Ficha de producto actualizada.' : 'Product dossier updated.');
+  };
+
+  const handleDeleteProductDossier = (dossierId: string) => {
+    onUpdateState((prev) => ({
+      ...prev,
+      productDossiers: (prev.productDossiers ?? []).filter((d) => d.id !== dossierId),
+    }));
+  };
+
   const generalInfo = getDefaultGeneralInfo(activePort);
 
   return (
@@ -1287,10 +1760,12 @@ export function ContentManagerModal({
                 ['weather', lang === 'es' ? 'Clima e Histórico' : 'Weather & History'],
                 ['channels', lang === 'es' ? 'Canales / Fondeo / Físicas' : 'Channels & Specs'],
                 ['terminals', lang === 'es' ? 'Terminales y Muelles' : 'Terminals & Berths'],
+                ['products', lang === 'es' ? 'Productos y Fichas' : 'Products & Sheets'],
                 ['restrictions', lang === 'es' ? 'Restricciones' : 'Restrictions'],
                 ['services', lang === 'es' ? 'Servicios' : 'Services'],
                 ['lineup', lang === 'es' ? 'Line-Up' : 'Line-Up'],
                 ['tariffs', lang === 'es' ? 'Tarifas y PDA' : 'Tariffs & PDA'],
+                ['authorities', lang === 'es' ? 'Autoridades y Crew' : 'Authorities & Crew'],
                 ['directory', lang === 'es' ? 'Organigrama y Dir.' : 'Org & Directory'],
                 ['apps', lang === 'es' ? 'SOPs / Optic / Apps' : 'SOPs / Optic / Apps'],
               ] as [ManagerTab, string][]
@@ -2222,6 +2697,451 @@ export function ContentManagerModal({
                     />
                   </div>
 
+                  {/* Commercial Profile & Storage Summary Editor */}
+                  <div className="pt-2 border-t border-[#e5e5ea]">
+                    <button
+                      type="button"
+                      onClick={() => setShowCommercialEditor((v) => !v)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-[#042447] bg-[#eef8fd] hover:bg-[#dceffb] border border-[#b9e3f9] rounded-lg transition-colors"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-[#0066cc]" />
+                      {showCommercialEditor
+                        ? lang === 'es'
+                          ? 'Ocultar Perfil Comercial, Aduana y Almacenaje'
+                          : 'Hide Commercial Profile, Customs & Storage'
+                        : lang === 'es'
+                        ? 'Editar Perfil Comercial, Aduana, Conectividad y Almacenaje'
+                        : 'Edit Commercial Profile, Customs, Connectivity & Storage'}
+                      {showCommercialEditor ? (
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      ) : (
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+
+                    {showCommercialEditor && (
+                      <div className="mt-3 p-4 rounded-xl bg-[#f5f5f7] border border-[#e5e5ea] space-y-4">
+                        <div className="text-[12px] font-semibold text-[#1d1d1f]">
+                          {lang === 'es'
+                            ? 'Almacenaje y Patios (m²)'
+                            : 'Storage & Yard Footprint (m²)'}
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                          <div>
+                            <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                              {lang === 'es' ? 'Bodegas Techadas (m²)' : 'Covered Warehouses (m²)'}
+                            </label>
+                            <input
+                              type="number"
+                              value={editingTerminal.storageSummary?.coveredSqm ?? 0}
+                              onChange={(e) =>
+                                handleUpdateTerminalStorage(editingTerminal.id, {
+                                  coveredSqm: Number(e.target.value) || 0,
+                                })
+                              }
+                              className="w-full px-2.5 py-1 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-md"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                              {lang === 'es' ? 'Patios Abiertos (m²)' : 'Open Yards (m²)'}
+                            </label>
+                            <input
+                              type="number"
+                              value={editingTerminal.storageSummary?.openYardSqm ?? 0}
+                              onChange={(e) =>
+                                handleUpdateTerminalStorage(editingTerminal.id, {
+                                  openYardSqm: Number(e.target.value) || 0,
+                                })
+                              }
+                              className="w-full px-2.5 py-1 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-md"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                              {lang === 'es' ? 'Patio Contenedores (m²)' : 'Container Yard (m²)'}
+                            </label>
+                            <input
+                              type="number"
+                              value={editingTerminal.storageSummary?.containerYardSqm ?? 0}
+                              onChange={(e) =>
+                                handleUpdateTerminalStorage(editingTerminal.id, {
+                                  containerYardSqm: Number(e.target.value) || 0,
+                                })
+                              }
+                              className="w-full px-2.5 py-1 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-md"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          <textarea
+                            rows={2}
+                            value={editingTerminal.storageSummary?.warehousesBreakdown ?? ''}
+                            onChange={(e) =>
+                              handleUpdateTerminalStorage(editingTerminal.id, {
+                                warehousesBreakdown: e.target.value,
+                              })
+                            }
+                            placeholder={lang === 'es' ? 'Detalle de almacenaje (ES)' : 'Storage breakdown (ES)'}
+                            className="px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                          />
+                          <textarea
+                            rows={2}
+                            value={editingTerminal.storageSummary?.warehousesBreakdownEn ?? ''}
+                            onChange={(e) =>
+                              handleUpdateTerminalStorage(editingTerminal.id, {
+                                warehousesBreakdownEn: e.target.value,
+                              })
+                            }
+                            placeholder={lang === 'es' ? 'Detalle de almacenaje (EN)' : 'Storage breakdown (EN)'}
+                            className="px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                          />
+                        </div>
+
+                        <div className="pt-3 border-t border-[#d2d2d7]/70 space-y-2.5">
+                          <div className="text-[12px] font-semibold text-[#1d1d1f]">
+                            {lang === 'es'
+                              ? 'Perfil Comercial, Aduana y Conectividad'
+                              : 'Commercial Profile, Customs & Connectivity'}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <input
+                              type="text"
+                              value={editingTerminal.commercialProfile?.positioningHeadline ?? ''}
+                              onChange={(e) =>
+                                handleUpdateTerminalCommercial(editingTerminal.id, {
+                                  positioningHeadline: e.target.value,
+                                })
+                              }
+                              placeholder={lang === 'es' ? 'Titular comercial (ES)' : 'Positioning headline (ES)'}
+                              className="px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                            />
+                            <input
+                              type="text"
+                              value={editingTerminal.commercialProfile?.positioningHeadlineEn ?? ''}
+                              onChange={(e) =>
+                                handleUpdateTerminalCommercial(editingTerminal.id, {
+                                  positioningHeadlineEn: e.target.value,
+                                })
+                              }
+                              placeholder={lang === 'es' ? 'Titular comercial (EN)' : 'Positioning headline (EN)'}
+                              className="px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                            />
+                            <input
+                              type="text"
+                              value={editingTerminal.commercialProfile?.customsRegime ?? ''}
+                              onChange={(e) =>
+                                handleUpdateTerminalCommercial(editingTerminal.id, {
+                                  customsRegime: e.target.value,
+                                })
+                              }
+                              placeholder={lang === 'es' ? 'Régimen aduanal (ES)' : 'Customs regime (ES)'}
+                              className="px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                            />
+                            <input
+                              type="text"
+                              value={editingTerminal.commercialProfile?.customsRegimeEn ?? ''}
+                              onChange={(e) =>
+                                handleUpdateTerminalCommercial(editingTerminal.id, {
+                                  customsRegimeEn: e.target.value,
+                                })
+                              }
+                              placeholder={lang === 'es' ? 'Régimen aduanal (EN)' : 'Customs regime (EN)'}
+                              className="px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                            />
+                          </div>
+
+                          <input
+                            type="text"
+                            value={editingTerminal.commercialProfile?.address ?? ''}
+                            onChange={(e) =>
+                              handleUpdateTerminalCommercial(editingTerminal.id, {
+                                address: e.target.value,
+                              })
+                            }
+                            placeholder={lang === 'es' ? 'Dirección física de la terminal' : 'Physical terminal address'}
+                            className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                          />
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <textarea
+                              rows={2}
+                              value={editingTerminal.commercialProfile?.connectivity ?? ''}
+                              onChange={(e) =>
+                                handleUpdateTerminalCommercial(editingTerminal.id, {
+                                  connectivity: e.target.value,
+                                })
+                              }
+                              placeholder={lang === 'es' ? 'Conectividad multimodal (ES)' : 'Connectivity (ES)'}
+                              className="px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                            />
+                            <textarea
+                              rows={2}
+                              value={editingTerminal.commercialProfile?.connectivityEn ?? ''}
+                              onChange={(e) =>
+                                handleUpdateTerminalCommercial(editingTerminal.id, {
+                                  connectivityEn: e.target.value,
+                                })
+                              }
+                              placeholder={lang === 'es' ? 'Conectividad multimodal (EN)' : 'Connectivity (EN)'}
+                              className="px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Servicios comerciales (ES · uno por línea)'
+                                  : 'Commercial services (ES · one per line)'}
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={(editingTerminal.commercialProfile?.commercialServices ?? []).join('\n')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    commercialServices: e.target.value
+                                      .split('\n')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Servicios comerciales (EN · uno por línea)'
+                                  : 'Commercial services (EN · one per line)'}
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={(editingTerminal.commercialProfile?.commercialServicesEn ?? []).join('\n')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    commercialServicesEn: e.target.value
+                                      .split('\n')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Infraestructura clave (ES · uno por línea)'
+                                  : 'Infrastructure highlights (ES · one per line)'}
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={(editingTerminal.commercialProfile?.infrastructureHighlights ?? []).join('\n')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    infrastructureHighlights: e.target.value
+                                      .split('\n')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Infraestructura clave (EN · uno por línea)'
+                                  : 'Infrastructure highlights (EN · one per line)'}
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={(editingTerminal.commercialProfile?.infrastructureHighlightsEn ?? []).join('\n')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    infrastructureHighlightsEn: e.target.value
+                                      .split('\n')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Embarcaciones atendidas (ES · una por línea)'
+                                  : 'Vessel types served (ES · one per line)'}
+                              </label>
+                              <textarea
+                                rows={2}
+                                value={(editingTerminal.commercialProfile?.vesselTypesServed ?? []).join('\n')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    vesselTypesServed: e.target.value
+                                      .split('\n')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Embarcaciones atendidas (EN · una por línea)'
+                                  : 'Vessel types served (EN · one per line)'}
+                              </label>
+                              <textarea
+                                rows={2}
+                                value={(editingTerminal.commercialProfile?.vesselTypesServedEn ?? []).join('\n')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    vesselTypesServedEn: e.target.value
+                                      .split('\n')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Flujo aduanal / pasos (ES · uno por línea)'
+                                  : 'Customs clearance steps (ES · one per line)'}
+                              </label>
+                              <textarea
+                                rows={2}
+                                value={(editingTerminal.commercialProfile?.customsProcess ?? []).join('\n')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    customsProcess: e.target.value
+                                      .split('\n')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Flujo aduanal / pasos (EN · uno por línea)'
+                                  : 'Customs clearance steps (EN · one per line)'}
+                              </label>
+                              <textarea
+                                rows={2}
+                                value={(editingTerminal.commercialProfile?.customsProcessEn ?? []).join('\n')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    customsProcessEn: e.target.value
+                                      .split('\n')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Ventajas operativas (ES · una por línea)'
+                                  : 'Operational advantages (ES · one per line)'}
+                              </label>
+                              <textarea
+                                rows={2}
+                                value={(editingTerminal.commercialProfile?.operationalAdvantages ?? []).join('\n')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    operationalAdvantages: e.target.value
+                                      .split('\n')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Ventajas operativas (EN · una por línea)'
+                                  : 'Operational advantages (EN · one per line)'}
+                              </label>
+                              <textarea
+                                rows={2}
+                                value={(editingTerminal.commercialProfile?.operationalAdvantagesEn ?? []).join('\n')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    operationalAdvantagesEn: e.target.value
+                                      .split('\n')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Clientes / Líneas clave (separados por coma)'
+                                  : 'Key clients / lines (comma-separated)'}
+                              </label>
+                              <input
+                                type="text"
+                                value={(editingTerminal.commercialProfile?.keyClientsOrTrades ?? []).join(', ')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    keyClientsOrTrades: e.target.value
+                                      .split(',')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] text-[#6e6e73] mb-0.5">
+                                {lang === 'es'
+                                  ? 'Certificaciones (separadas por coma)'
+                                  : 'Certifications (comma-separated)'}
+                              </label>
+                              <input
+                                type="text"
+                                value={(editingTerminal.commercialProfile?.certifications ?? []).join(', ')}
+                                onChange={(e) =>
+                                  handleUpdateTerminalCommercial(editingTerminal.id, {
+                                    certifications: e.target.value
+                                      .split(',')
+                                      .map((s) => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="w-full px-2.5 py-1.5 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-md"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Berths inside Terminal */}
                   <div className="space-y-2.5 pt-2">
                     <div className="flex items-center justify-between">
@@ -2977,55 +3897,290 @@ export function ContentManagerModal({
                     {(editingTerminal.concessionaires ?? []).map((conc) => (
                       <div
                         key={conc.id}
-                        className="p-2.5 rounded-lg bg-[#f5f5f7] border border-[#e5e5ea] grid grid-cols-1 sm:grid-cols-12 gap-2 items-center"
+                        className="p-3 rounded-lg bg-[#f5f5f7] border border-[#e5e5ea] space-y-2"
                       >
-                        <input
-                          type="text"
-                          value={conc.name}
-                          onChange={(e) =>
-                            handleUpdateConcessionaire(editingTerminal.id, conc.id, {
-                              name: e.target.value,
-                            })
-                          }
-                          aria-label="Concessionaire name"
-                          className="sm:col-span-4 px-2 py-1 text-[12px] font-medium bg-white border border-[#d2d2d7] rounded"
-                        />
-                        <input
-                          type="text"
-                          value={lang === 'es' ? conc.cargoCategory : conc.cargoCategoryEn}
-                          onChange={(e) =>
-                            handleUpdateConcessionaire(
-                              editingTerminal.id,
-                              conc.id,
+                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                          <input
+                            type="text"
+                            value={conc.name}
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(editingTerminal.id, conc.id, {
+                                name: e.target.value,
+                              })
+                            }
+                            aria-label="Concessionaire name"
+                            placeholder={lang === 'es' ? 'Nombre cesionario' : 'Concessionaire name'}
+                            className="sm:col-span-4 px-2 py-1 text-[12px] font-medium bg-white border border-[#d2d2d7] rounded"
+                          />
+                          <input
+                            type="text"
+                            value={lang === 'es' ? conc.cargoCategory : conc.cargoCategoryEn}
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(
+                                editingTerminal.id,
+                                conc.id,
+                                lang === 'es'
+                                  ? { cargoCategory: e.target.value }
+                                  : { cargoCategoryEn: e.target.value }
+                              )
+                            }
+                            aria-label="Concessionaire cargo"
+                            placeholder={lang === 'es' ? 'Categoría de carga' : 'Cargo category'}
+                            className="sm:col-span-3 px-2 py-1 text-[12px] bg-white border border-[#d2d2d7] rounded"
+                          />
+                          <input
+                            type="text"
+                            value={conc.berthsUsed}
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(editingTerminal.id, conc.id, {
+                                berthsUsed: e.target.value,
+                              })
+                            }
+                            aria-label="Concessionaire berths"
+                            placeholder={lang === 'es' ? 'Muelles asignados' : 'Berths used'}
+                            className="sm:col-span-4 px-2 py-1 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDeleteConcessionaire(editingTerminal.id, conc.id)
+                            }
+                            aria-label="Delete concessionaire"
+                            className="sm:col-span-1 justify-self-end p-1 text-[#6e6e73] hover:text-[#dc2626]"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <input
+                            type="text"
+                            value={
                               lang === 'es'
-                                ? { cargoCategory: e.target.value }
-                                : { cargoCategoryEn: e.target.value }
-                            )
+                                ? conc.subdivision ?? ''
+                                : conc.subdivisionEn ?? conc.subdivision ?? ''
+                            }
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(
+                                editingTerminal.id,
+                                conc.id,
+                                lang === 'es'
+                                  ? { subdivision: e.target.value }
+                                  : { subdivisionEn: e.target.value }
+                              )
+                            }
+                            placeholder={
+                              lang === 'es'
+                                ? 'Subdivisión (ej. Subdivisión Ergon)'
+                                : 'Subdivision (e.g. Ergon Subdivision)'
+                            }
+                            className="px-2 py-1 text-[11.5px] bg-white border border-[#d2d2d7] rounded"
+                          />
+                          <input
+                            type="text"
+                            value={
+                              lang === 'es'
+                                ? conc.connectionSpecs ?? ''
+                                : conc.connectionSpecsEn ?? conc.connectionSpecs ?? ''
+                            }
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(
+                                editingTerminal.id,
+                                conc.id,
+                                lang === 'es'
+                                  ? { connectionSpecs: e.target.value }
+                                  : { connectionSpecsEn: e.target.value }
+                              )
+                            }
+                            placeholder={
+                              lang === 'es'
+                                ? 'Conexiones / Bridas / Líneas'
+                                : 'Connections / Flanges / Lines'
+                            }
+                            className="px-2 py-1 text-[11.5px] bg-white border border-[#d2d2d7] rounded"
+                          />
+                          <input
+                            type="text"
+                            value={
+                              lang === 'es'
+                                ? conc.dischargeMethod ?? ''
+                                : conc.dischargeMethodEn ?? conc.dischargeMethod ?? ''
+                            }
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(
+                                editingTerminal.id,
+                                conc.id,
+                                lang === 'es'
+                                  ? { dischargeMethod: e.target.value }
+                                  : { dischargeMethodEn: e.target.value }
+                              )
+                            }
+                            placeholder={
+                              lang === 'es'
+                                ? 'Método descarga / transferencia'
+                                : 'Discharge / transfer method'
+                            }
+                            className="px-2 py-1 text-[11.5px] bg-white border border-[#d2d2d7] rounded"
+                          />
+                        </div>
+
+                        <ImageUploaderField
+                          id={`cm-conc-photo-${conc.id}`}
+                          label={
+                            lang === 'es'
+                              ? `Fotografía de Terminal Interna: ${conc.name}`
+                              : `Inner Terminal Photo: ${conc.name}`
                           }
-                          aria-label="Concessionaire cargo"
-                          className="sm:col-span-3 px-2 py-1 text-[12px] bg-white border border-[#d2d2d7] rounded"
-                        />
-                        <input
-                          type="text"
-                          value={conc.berthsUsed}
-                          onChange={(e) =>
+                          value={conc.imageUrl ?? editingTerminal.imageUrl}
+                          lang={lang}
+                          onChange={(imageUrl) =>
                             handleUpdateConcessionaire(editingTerminal.id, conc.id, {
-                              berthsUsed: e.target.value,
+                              imageUrl,
                             })
                           }
-                          aria-label="Concessionaire berths"
-                          className="sm:col-span-4 px-2 py-1 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded"
                         />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleDeleteConcessionaire(editingTerminal.id, conc.id)
-                          }
-                          aria-label="Delete concessionaire"
-                          className="sm:col-span-1 justify-self-end p-1 text-[#6e6e73] hover:text-[#dc2626]"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <input
+                            type="text"
+                            value={conc.coordinates ?? ''}
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(editingTerminal.id, conc.id, {
+                                coordinates: e.target.value,
+                              })
+                            }
+                            placeholder={
+                              lang === 'es'
+                                ? "Coordenadas (ej. 18°08'22\"N · 94°24'55\"W)"
+                                : 'Coordinates'
+                            }
+                            className="px-2 py-1 text-[11.5px] font-mono bg-white border border-[#d2d2d7] rounded"
+                          />
+                          <input
+                            type="text"
+                            value={
+                              lang === 'es'
+                                ? conc.storageCapacity ?? ''
+                                : conc.storageCapacityEn ?? conc.storageCapacity ?? ''
+                            }
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(
+                                editingTerminal.id,
+                                conc.id,
+                                lang === 'es'
+                                  ? { storageCapacity: e.target.value }
+                                  : { storageCapacityEn: e.target.value }
+                              )
+                            }
+                            placeholder={
+                              lang === 'es'
+                                ? 'Capacidad de almacenaje / vínculo'
+                                : 'Storage capacity / tie-in'
+                            }
+                            className="px-2 py-1 text-[11.5px] bg-white border border-[#d2d2d7] rounded"
+                          />
+                          <input
+                            type="text"
+                            value={(conc.productsList ?? []).join(', ')}
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(editingTerminal.id, conc.id, {
+                                productsList: e.target.value
+                                  .split(',')
+                                  .map((item) => item.trim())
+                                  .filter(Boolean),
+                              })
+                            }
+                            placeholder={
+                              lang === 'es'
+                                ? 'Productos (separados por coma)'
+                                : 'Products (comma separated)'
+                            }
+                            className="px-2 py-1 text-[11.5px] bg-white border border-[#d2d2d7] rounded"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <textarea
+                            rows={2}
+                            value={lang === 'es' ? conc.infrastructure : conc.infrastructureEn}
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(
+                                editingTerminal.id,
+                                conc.id,
+                                lang === 'es'
+                                  ? { infrastructure: e.target.value }
+                                  : { infrastructureEn: e.target.value }
+                              )
+                            }
+                            placeholder={
+                              lang === 'es'
+                                ? 'Infraestructura y equipamiento'
+                                : 'Infrastructure & equipment'
+                            }
+                            className="px-2 py-1 text-[11.5px] bg-white border border-[#d2d2d7] rounded"
+                          />
+                          <textarea
+                            rows={2}
+                            value={
+                              lang === 'es'
+                                ? conc.restrictions ?? ''
+                                : conc.restrictionsEn ?? conc.restrictions ?? ''
+                            }
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(
+                                editingTerminal.id,
+                                conc.id,
+                                lang === 'es'
+                                  ? { restrictions: e.target.value }
+                                  : { restrictionsEn: e.target.value }
+                              )
+                            }
+                            placeholder={
+                              lang === 'es'
+                                ? 'Restricciones específicas del cesionario'
+                                : 'Specific concessionaire restrictions'
+                            }
+                            className="px-2 py-1 text-[11.5px] bg-white border border-[#d2d2d7] rounded"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <textarea
+                            rows={2}
+                            value={(lang === 'es'
+                              ? conc.procedures ?? []
+                              : conc.proceduresEn ?? conc.procedures ?? []
+                            ).join('\n')}
+                            onChange={(e) => {
+                              const lines = e.target.value.split('\n');
+                              handleUpdateConcessionaire(
+                                editingTerminal.id,
+                                conc.id,
+                                lang === 'es'
+                                  ? { procedures: lines }
+                                  : { proceduresEn: lines }
+                              );
+                            }}
+                            placeholder={
+                              lang === 'es'
+                                ? 'Procedimientos (uno por línea)'
+                                : 'Procedures (one per line)'
+                            }
+                            className="px-2 py-1 text-[11.5px] bg-white border border-[#d2d2d7] rounded"
+                          />
+                          <input
+                            type="text"
+                            value={conc.auditSource ?? ''}
+                            onChange={(e) =>
+                              handleUpdateConcessionaire(editingTerminal.id, conc.id, {
+                                auditSource: e.target.value,
+                              })
+                            }
+                            placeholder={
+                              lang === 'es' ? 'Fuente de referencia' : 'Reference source'
+                            }
+                            className="px-2 py-1 text-[11.5px] bg-white border border-[#d2d2d7] rounded self-start"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -3239,6 +4394,32 @@ export function ContentManagerModal({
           {/* TAB 6: MARINE SERVICES */}
           {tab === 'services' && (
             <div className="space-y-5">
+              {/* Carpeta Drive de Servicios Técnicos */}
+              <div className="p-4 rounded-xl bg-[#eef6ff] border border-[#cde3ff] space-y-2">
+                <div className="text-[13px] font-semibold text-[#042447]">
+                  {lang === 'es'
+                    ? 'Carpeta Drive de Servicios Técnicos (Tarifas oficiales, Acuerdos y Restricciones)'
+                    : 'Technical Services Google Drive Folder (Official Tariffs, Agreements & Restrictions)'}
+                </div>
+                <p className="text-[11.5px] text-[#424245]">
+                  {lang === 'es'
+                    ? 'Enlaza tu carpeta general de Drive y/o pega enlaces de archivos de Google Drive directamente dentro de cada servicio técnico para habilitar su descarga directa.'
+                    : 'Link your main Drive folder and/or attach Google Drive file links inside each technical service for 1-click direct download.'}
+                </p>
+                <input
+                  type="url"
+                  value={hubState.servicesDriveFolderUrl ?? ''}
+                  onChange={(e) =>
+                    onUpdateState((prev) => ({
+                      ...prev,
+                      servicesDriveFolderUrl: e.target.value,
+                    }))
+                  }
+                  placeholder="https://drive.google.com/drive/folders/..."
+                  className="w-full px-3 py-1.5 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-lg"
+                />
+              </div>
+
               <form
                 onSubmit={handleAddService}
                 className="p-4 rounded-xl bg-[#f5f5f7] border border-[#e5e5ea] grid grid-cols-1 sm:grid-cols-4 gap-3 items-end"
@@ -3274,67 +4455,185 @@ export function ContentManagerModal({
                 </button>
               </form>
 
-              <div className="space-y-2">
-                {activeServices.map((srv) => (
-                  <div
-                    key={srv.id}
-                    className="p-3 rounded-xl border border-[#e5e5ea] bg-white grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center"
-                  >
-                    <label className="sm:col-span-2 inline-flex items-center gap-2 text-[12px] font-medium cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={srv.available}
-                        onChange={(e) =>
-                          handleUpdateService(srv.id, { available: e.target.checked })
-                        }
-                        className="w-4 h-4 rounded"
-                      />
-                      {srv.available
-                        ? lang === 'es'
-                          ? 'Habilitado'
-                          : 'Available'
-                        : lang === 'es'
-                        ? 'Restringido'
-                        : 'Restricted'}
-                    </label>
-                    <input
-                      type="text"
-                      value={lang === 'es' ? srv.name : srv.nameEn}
-                      onChange={(e) =>
-                        handleUpdateService(
-                          srv.id,
-                          lang === 'es'
-                            ? { name: e.target.value }
-                            : { nameEn: e.target.value }
-                        )
-                      }
-                      aria-label="Service name"
-                      className="sm:col-span-4 px-2.5 py-1.5 text-[12px] font-medium bg-[#f5f5f7] border border-[#d2d2d7] rounded-md"
-                    />
-                    <input
-                      type="text"
-                      value={lang === 'es' ? srv.detail : srv.detailEn}
-                      onChange={(e) =>
-                        handleUpdateService(
-                          srv.id,
-                          lang === 'es'
-                            ? { detail: e.target.value }
-                            : { detailEn: e.target.value }
-                        )
-                      }
-                      aria-label="Service detail"
-                      className="sm:col-span-5 px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-md"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteService(srv.id)}
-                      aria-label="Delete service"
-                      className="sm:col-span-1 justify-self-end p-1 text-[#6e6e73] hover:text-[#dc2626]"
+              <div className="space-y-3">
+                {activeServices.map((srv) => {
+                  const docs = srv.documentLinks ?? [];
+                  return (
+                    <div
+                      key={srv.id}
+                      className="p-3.5 rounded-xl border border-[#e5e5ea] bg-white space-y-3"
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+                        <label className="sm:col-span-2 inline-flex items-center gap-2 text-[12px] font-medium cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={srv.available}
+                            onChange={(e) =>
+                              handleUpdateService(srv.id, { available: e.target.checked })
+                            }
+                            className="w-4 h-4 rounded"
+                          />
+                          {srv.available
+                            ? lang === 'es'
+                              ? 'Habilitado'
+                              : 'Available'
+                            : lang === 'es'
+                            ? 'Restringido'
+                            : 'Restricted'}
+                        </label>
+                        <input
+                          type="text"
+                          value={lang === 'es' ? srv.name : srv.nameEn}
+                          onChange={(e) =>
+                            handleUpdateService(
+                              srv.id,
+                              lang === 'es'
+                                ? { name: e.target.value }
+                                : { nameEn: e.target.value }
+                            )
+                          }
+                          aria-label="Service name"
+                          className="sm:col-span-4 px-2.5 py-1.5 text-[12px] font-medium bg-[#f5f5f7] border border-[#d2d2d7] rounded-md"
+                        />
+                        <input
+                          type="text"
+                          value={lang === 'es' ? srv.detail : srv.detailEn}
+                          onChange={(e) =>
+                            handleUpdateService(
+                              srv.id,
+                              lang === 'es'
+                                ? { detail: e.target.value }
+                                : { detailEn: e.target.value }
+                            )
+                          }
+                          aria-label="Service detail"
+                          className="sm:col-span-5 px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-md"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteService(srv.id)}
+                          aria-label="Delete service"
+                          className="sm:col-span-1 justify-self-end p-1 text-[#6e6e73] hover:text-[#dc2626]"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Per-service Official Tariff / Agreement / Restriction Drive Links */}
+                      <div className="pt-2 border-t border-[#f0f0f3] space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-[11px] font-semibold text-[#1d1d1f]">
+                            {lang === 'es'
+                              ? 'Documentos oficiales en Drive (Tarifas, Acuerdos, Restricciones)'
+                              : 'Official Drive Documents (Tariffs, Agreements, Restrictions)'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleUpdateService(srv.id, {
+                                documentLinks: [
+                                  ...docs,
+                                  {
+                                    id: `srvdoc-${Date.now()}`,
+                                    label: lang === 'es' ? 'Tarifa / Acuerdo Oficial' : 'Official Tariff / Agreement',
+                                    url:
+                                      hubState.servicesDriveFolderUrl?.trim() ||
+                                      'https://drive.google.com/file/d/',
+                                    docType: 'Tarifa oficial',
+                                  },
+                                ],
+                              })
+                            }
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-[#0066cc] bg-[#eef6ff] hover:bg-[#dcebff] border border-[#cde3ff] rounded-md transition-colors"
+                          >
+                            <Plus className="w-3 h-3" />
+                            {lang === 'es' ? 'Agregar documento / Drive' : 'Add Drive doc'}
+                          </button>
+                        </div>
+
+                        {docs.map((lnk) => {
+                          const resolved = resolveDocumentLinkUrl(lnk.url);
+                          return (
+                            <div
+                              key={lnk.id}
+                              className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center"
+                            >
+                              <input
+                                type="text"
+                                value={lnk.label}
+                                onChange={(e) =>
+                                  handleUpdateService(srv.id, {
+                                    documentLinks: docs.map((d) =>
+                                      d.id === lnk.id ? { ...d, label: e.target.value } : d
+                                    ),
+                                  })
+                                }
+                                placeholder={
+                                  lang === 'es'
+                                    ? 'Nombre del documento (ej. Tarifa oficial 2026)'
+                                    : 'Document label'
+                                }
+                                className="md:col-span-4 px-2.5 py-1 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                              />
+                              <div className="md:col-span-5 space-y-0.5">
+                                <input
+                                  type="url"
+                                  value={lnk.url}
+                                  onChange={(e) =>
+                                    handleUpdateService(srv.id, {
+                                      documentLinks: docs.map((d) =>
+                                        d.id === lnk.id ? { ...d, url: e.target.value } : d
+                                      ),
+                                    })
+                                  }
+                                  placeholder="https://drive.google.com/file/d/.../view"
+                                  className="w-full px-2.5 py-1 text-[12px] font-mono bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                                />
+                                {resolved.isDrive && resolved.isDirectDownload && (
+                                  <div className="text-[10px] font-medium text-[#0066cc]">
+                                    {lang === 'es'
+                                      ? '↓ Enlace Drive detectado: descarga directa automática'
+                                      : '↓ Drive file detected: direct download enabled'}
+                                  </div>
+                                )}
+                              </div>
+                              <select
+                                value={lnk.docType ?? 'Tarifa oficial'}
+                                onChange={(e) =>
+                                  handleUpdateService(srv.id, {
+                                    documentLinks: docs.map((d) =>
+                                      d.id === lnk.id ? { ...d, docType: e.target.value } : d
+                                    ),
+                                  })
+                                }
+                                aria-label="Service document type"
+                                className="md:col-span-2 px-2 py-1 text-[11.5px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                              >
+                                <option value="Tarifa oficial">Tarifa oficial</option>
+                                <option value="Acuerdo">Acuerdo</option>
+                                <option value="Restricción">Restricción</option>
+                                <option value="Circular / Oficio">Circular / Oficio</option>
+                                <option value="Drive / PDF">Drive / PDF</option>
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleUpdateService(srv.id, {
+                                    documentLinks: docs.filter((d) => d.id !== lnk.id),
+                                  })
+                                }
+                                aria-label={`Remove ${lnk.label}`}
+                                className="md:col-span-1 flex justify-center p-1 text-[#dc2626] hover:bg-[#fef2f2] rounded-md"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -3521,178 +4820,905 @@ export function ContentManagerModal({
             </div>
           )}
 
-          {/* TAB 8: TARIFFS & PDA */}
+          {/* TAB 8: TARIFFS, FORMULAS, PDA FORMATS & BANK DETAILS */}
           {tab === 'tariffs' && (
-            <div className="space-y-5">
+            <div className="space-y-6">
+              {/* Add New Formula-Driven Tariff */}
               <form
                 onSubmit={handleAddTariff}
-                className="p-4 rounded-xl bg-[#f5f5f7] border border-[#e5e5ea] grid grid-cols-1 sm:grid-cols-6 gap-2.5 items-end"
+                className="p-4 rounded-xl bg-[#f5f5f7] border border-[#e5e5ea] space-y-3"
               >
-                <input
-                  type="text"
-                  value={newTariffCode}
-                  onChange={(e) => setNewTariffCode(e.target.value)}
-                  placeholder="Código"
-                  className="px-2.5 py-2 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-lg"
-                />
-                <input
-                  type="text"
-                  required
-                  value={newTariffConcept}
-                  onChange={(e) => setNewTariffConcept(e.target.value)}
-                  placeholder={lang === 'es' ? 'Concepto nuevo' : 'New concept'}
-                  className="sm:col-span-2 px-2.5 py-2 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
-                />
-                <input
-                  type="text"
-                  value={newTariffProvider}
-                  onChange={(e) => setNewTariffProvider(e.target.value)}
-                  placeholder="Proveedor"
-                  className="px-2.5 py-2 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
-                />
-                <div className="flex gap-1.5">
+                <div className="text-[13px] font-semibold text-[#1d1d1f]">
+                  {lang === 'es'
+                    ? 'Agregar concepto tarifario y fórmula PDA'
+                    : 'Add tariff concept & PDA formula'}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-6 gap-2.5">
+                  <input
+                    type="text"
+                    value={newTariffCode}
+                    onChange={(e) => setNewTariffCode(e.target.value)}
+                    placeholder="Código"
+                    className="px-2.5 py-2 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-lg"
+                  />
+                  <input
+                    type="text"
+                    required
+                    value={newTariffConcept}
+                    onChange={(e) => setNewTariffConcept(e.target.value)}
+                    placeholder={lang === 'es' ? 'Concepto nuevo' : 'New concept'}
+                    className="sm:col-span-2 px-2.5 py-2 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                  />
+                  <input
+                    type="text"
+                    value={newTariffProvider}
+                    onChange={(e) => setNewTariffProvider(e.target.value)}
+                    placeholder="Proveedor"
+                    className="px-2.5 py-2 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                  />
+                  <select
+                    value={newTariffSection}
+                    onChange={(e) => setNewTariffSection(e.target.value as PdaChargeSection)}
+                    className="px-2.5 py-2 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                  >
+                    <option value="port">Port Charges</option>
+                    <option value="crew">Crew Charges</option>
+                    <option value="husbandry">Husbandry Charges</option>
+                    <option value="agency">Agency Charges</option>
+                  </select>
+                  <select
+                    value={newTariffUnit}
+                    onChange={(e) => setNewTariffUnit(e.target.value as TariffUnit)}
+                    className="px-2.5 py-2 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                  >
+                    <option value="flat">Cuota Fija</option>
+                    <option value="per_gt">Per GT / GRT</option>
+                    <option value="per_loa_m">Per LOA m</option>
+                    <option value="per_tug_hour">Per Tug Hr</option>
+                    <option value="per_day">Per Day</option>
+                    <option value="per_ton">Per MT</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-6 gap-2.5 items-center">
+                  <select
+                    value={newTariffFormula}
+                    onChange={(e) => setNewTariffFormula(e.target.value as PdaFormulaType)}
+                    className="sm:col-span-2 px-2.5 py-2 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                  >
+                    {PDA_FORMULA_OPTIONS.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.label}
+                      </option>
+                    ))}
+                  </select>
                   <input
                     type="number"
                     step="0.01"
                     value={newTariffRate}
                     onChange={(e) => setNewTariffRate(Number(e.target.value) || 0)}
-                    className="w-20 px-2 py-2 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-lg"
+                    placeholder="Rate"
+                    className="px-2.5 py-2 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-lg"
                   />
                   <select
                     value={newTariffCurrency}
                     onChange={(e) => setNewTariffCurrency(e.target.value as 'USD' | 'MXN')}
                     aria-label="Currency"
-                    className="px-2 py-2 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                    className="px-2.5 py-2 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
                   >
                     <option value="USD">USD</option>
                     <option value="MXN">MXN</option>
                   </select>
+                  <input
+                    type="number"
+                    min={0}
+                    max={30}
+                    value={newTariffVatPct}
+                    onChange={(e) => setNewTariffVatPct(Number(e.target.value) || 0)}
+                    placeholder="IVA %"
+                    className="px-2.5 py-2 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-lg"
+                  />
+                  <button
+                    type="submit"
+                    className="px-3 py-2 text-[12px] font-medium text-white bg-[#0066cc] rounded-lg"
+                  >
+                    {lang === 'es' ? '+ Tarifa / Fórmula' : '+ Add Tariff'}
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  className="px-3 py-2 text-[12px] font-medium text-white bg-[#0066cc] rounded-lg"
-                >
-                  {lang === 'es' ? '+ Tarifa' : '+ Tariff'}
-                </button>
+
+                {newTariffFormula === 'custom_expression' && (
+                  <input
+                    type="text"
+                    value={newTariffCustomFormula}
+                    onChange={(e) => setNewTariffCustomFormula(e.target.value)}
+                    placeholder="Fórmula: (grt * 0.52 + basefixed) * vat"
+                    className="w-full px-3 py-2 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-lg"
+                  />
+                )}
               </form>
 
-              <div className="space-y-2">
+              {/* Existing Tariffs Editor */}
+              <div className="space-y-3">
                 {portTariffs.map((t) => (
                   <div
                     key={t.id}
-                    className="p-3 rounded-xl border border-[#e5e5ea] bg-white grid grid-cols-1 sm:grid-cols-12 gap-2 items-center"
+                    className="p-3.5 rounded-xl border border-[#e5e5ea] bg-white space-y-2.5"
                   >
-                    <input
-                      type="text"
-                      value={lang === 'es' ? t.concept : t.conceptEn}
-                      onChange={(e) =>
-                        handleUpdateTariff(
-                          t.id,
-                          lang === 'es'
-                            ? { concept: e.target.value }
-                            : { conceptEn: e.target.value }
-                        )
-                      }
-                      aria-label="Tariff concept"
-                      className="sm:col-span-4 px-2.5 py-1.5 text-[12px] font-medium bg-[#f5f5f7] border border-[#d2d2d7] rounded-md"
-                    />
-                    <input
-                      type="text"
-                      value={t.provider}
-                      onChange={(e) =>
-                        handleUpdateTariff(t.id, { provider: e.target.value })
-                      }
-                      aria-label="Provider"
-                      className="sm:col-span-3 px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-md"
-                    />
-                    <input
-                      id={`rate-${t.id}`}
-                      type="number"
-                      step="0.05"
-                      min={0}
-                      value={t.rate}
-                      onChange={(e) =>
-                        handleUpdateTariff(t.id, { rate: Math.max(0, Number(e.target.value) || 0) })
-                      }
-                      aria-label="Tariff rate"
-                      className="sm:col-span-2 px-2.5 py-1.5 font-mono text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-md text-right"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateTariff(t.id, { active: !t.active })}
-                      className={`sm:col-span-2 px-2.5 py-1.5 text-[11px] font-medium rounded-md border ${
-                        t.active
-                          ? 'bg-[#ecfdf5] border-[#a7f3d0] text-[#065f46]'
-                          : 'bg-[#f5f5f7] border-[#d2d2d7] text-[#6e6e73]'
-                      }`}
-                    >
-                      {t.active ? (lang === 'es' ? 'Activa' : 'Active') : lang === 'es' ? 'Inactiva' : 'Off'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteTariff(t.id)}
-                      aria-label="Delete tariff"
-                      className="sm:col-span-1 justify-self-end p-1 text-[#6e6e73] hover:text-[#dc2626]"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                      <input
+                        type="text"
+                        value={lang === 'es' ? t.concept : t.conceptEn}
+                        onChange={(e) =>
+                          handleUpdateTariff(
+                            t.id,
+                            lang === 'es'
+                              ? { concept: e.target.value }
+                              : { conceptEn: e.target.value }
+                          )
+                        }
+                        aria-label="Tariff concept"
+                        className="sm:col-span-4 px-2.5 py-1.5 text-[12px] font-medium bg-[#f5f5f7] border border-[#d2d2d7] rounded-md"
+                      />
+                      <input
+                        type="text"
+                        value={t.provider}
+                        onChange={(e) =>
+                          handleUpdateTariff(t.id, { provider: e.target.value })
+                        }
+                        aria-label="Provider"
+                        className="sm:col-span-2 px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-md"
+                      />
+                      <input
+                        id={`rate-${t.id}`}
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        value={t.rate}
+                        onChange={(e) =>
+                          handleUpdateTariff(t.id, {
+                            rate: Math.max(0, Number(e.target.value) || 0),
+                          })
+                        }
+                        aria-label="Tariff rate"
+                        className="sm:col-span-2 px-2.5 py-1.5 font-mono text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-md text-right"
+                      />
+                      <select
+                        value={t.currency}
+                        onChange={(e) =>
+                          handleUpdateTariff(t.id, {
+                            currency: e.target.value as 'USD' | 'MXN',
+                          })
+                        }
+                        className="sm:col-span-1 px-1.5 py-1.5 text-[11px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-md"
+                      >
+                        <option value="USD">USD</option>
+                        <option value="MXN">MXN</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateTariff(t.id, { active: !t.active })}
+                        className={`sm:col-span-2 px-2.5 py-1.5 text-[11px] font-medium rounded-md border ${
+                          t.active
+                            ? 'bg-[#ecfdf5] border-[#a7f3d0] text-[#065f46]'
+                            : 'bg-[#f5f5f7] border-[#d2d2d7] text-[#6e6e73]'
+                        }`}
+                      >
+                        {t.active ? (lang === 'es' ? 'Activa' : 'Active') : lang === 'es' ? 'Inactiva' : 'Off'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTariff(t.id)}
+                        aria-label="Delete tariff"
+                        className="sm:col-span-1 justify-self-end p-1 text-[#6e6e73] hover:text-[#dc2626]"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Formula, VAT, Fixed Base & Vessel Types Row */}
+                    <div className="grid grid-cols-2 sm:grid-cols-12 gap-2 pt-2 border-t border-[#f1f5f9] text-[11px] items-center">
+                      <select
+                        value={normalizeChargeSection(t.chargeSection)}
+                        onChange={(e) =>
+                          handleUpdateTariff(t.id, {
+                            chargeSection: e.target.value as PdaChargeSection,
+                          })
+                        }
+                        aria-label="Charge section"
+                        className="sm:col-span-2 px-2 py-1 bg-[#f5f5f7] border border-[#d2d2d7] rounded"
+                      >
+                        <option value="port">Port Charges</option>
+                        <option value="crew">Crew Charges</option>
+                        <option value="husbandry">Husbandry Charges</option>
+                        <option value="agency">Agency Charges</option>
+                      </select>
+
+                      <select
+                        value={t.formulaType ?? 'standard'}
+                        onChange={(e) =>
+                          handleUpdateTariff(t.id, {
+                            formulaType: e.target.value as PdaFormulaType,
+                          })
+                        }
+                        aria-label="Formula type"
+                        className="sm:col-span-3 px-2 py-1 bg-[#f5f5f7] border border-[#d2d2d7] rounded"
+                      >
+                        {PDA_FORMULA_OPTIONS.map((opt) => (
+                          <option key={opt.id} value={opt.id}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="sm:col-span-2 flex items-center gap-1">
+                        <span className="text-[#6e6e73]">Fijo:</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={t.baseFixed ?? 0}
+                          onChange={(e) =>
+                            handleUpdateTariff(t.id, {
+                              baseFixed: Number(e.target.value) || 0,
+                            })
+                          }
+                          className="w-full px-1.5 py-1 font-mono bg-[#f5f5f7] border border-[#d2d2d7] rounded"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2 flex items-center gap-1">
+                        <span className="text-[#6e6e73]">IVA%:</span>
+                        <input
+                          type="number"
+                          min={0}
+                          max={30}
+                          value={Math.round((t.vatRate ?? 0) * 100)}
+                          onChange={(e) =>
+                            handleUpdateTariff(t.id, {
+                              vatRate: Math.max(0, (Number(e.target.value) || 0) / 100),
+                            })
+                          }
+                          className="w-full px-1.5 py-1 font-mono bg-[#f5f5f7] border border-[#d2d2d7] rounded"
+                        />
+                      </div>
+
+                      <select
+                        value={
+                          !t.applicableVesselTypes || t.applicableVesselTypes === 'ALL'
+                            ? 'ALL'
+                            : t.applicableVesselTypes[0] ?? 'ALL'
+                        }
+                        onChange={(e) =>
+                          handleUpdateTariff(t.id, {
+                            applicableVesselTypes:
+                              e.target.value === 'ALL'
+                                ? 'ALL'
+                                : [e.target.value as PdaVesselType],
+                          })
+                        }
+                        aria-label="Applicable vessel type"
+                        className="sm:col-span-3 px-2 py-1 bg-[#f5f5f7] border border-[#d2d2d7] rounded"
+                      >
+                        <option value="ALL">
+                          {lang === 'es' ? 'Buques: Todos' : 'Vessels: ALL'}
+                        </option>
+                        {PDA_VESSEL_TYPE_OPTIONS.map((vt) => (
+                          <option key={vt} value={vt}>
+                            {vt}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {t.formulaType === 'custom_expression' && (
+                      <input
+                        type="text"
+                        value={t.customFormula ?? ''}
+                        onChange={(e) =>
+                          handleUpdateTariff(t.id, { customFormula: e.target.value })
+                        }
+                        placeholder="Expresión personalizada (grt, loa, portstayhours, tughours, tugs, movements, rate, basefixed, vat)"
+                        className="w-full px-2.5 py-1.5 text-[11.5px] font-mono bg-[#f5f5f7] border border-[#d2d2d7] rounded"
+                      />
+                    )}
+
+                    <div className="pt-2 border-t border-[#f1f5f9] space-y-2">
+                      {t.subItems && t.subItems.length > 0 && (
+                        <>
+                          <div className="text-[11px] font-semibold text-[#6e6e73]">
+                            {lang === 'es'
+                              ? 'Sub-servicios incluidos (tarifa unitaria y cantidad base):'
+                              : 'Included sub-services (unit rate & default qty):'}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                            {t.subItems.map((sub) => (
+                              <div
+                                key={sub.id}
+                                className="flex items-center gap-1.5 p-1.5 rounded bg-[#f5f5f7] border border-[#e5e5ea] text-[11px]"
+                              >
+                                <span className="flex-1 truncate font-medium text-[#1d1d1f]">
+                                  {lang === 'es' ? sub.label : sub.labelEn}
+                                </span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min={0}
+                                  value={sub.rate}
+                                  onChange={(e) => {
+                                    const nextRate = Math.max(0, Number(e.target.value) || 0);
+                                    handleUpdateTariff(t.id, {
+                                      subItems: t.subItems?.map((s) =>
+                                        s.id === sub.id ? { ...s, rate: nextRate } : s
+                                      ),
+                                    });
+                                  }}
+                                  aria-label={`Rate for ${sub.label}`}
+                                  className="w-20 px-1.5 py-0.5 text-right font-mono bg-white border border-[#d2d2d7] rounded"
+                                />
+                                <input
+                                  type="number"
+                                  step="0.5"
+                                  min={0}
+                                  value={sub.defaultQty}
+                                  onChange={(e) => {
+                                    const nextQty = Math.max(0, Number(e.target.value) || 0);
+                                    handleUpdateTariff(t.id, {
+                                      subItems: t.subItems?.map((s) =>
+                                        s.id === sub.id ? { ...s, defaultQty: nextQty } : s
+                                      ),
+                                    });
+                                  }}
+                                  aria-label={`Default qty for ${sub.label}`}
+                                  className="w-14 px-1.5 py-0.5 text-right font-mono bg-white border border-[#d2d2d7] rounded"
+                                  title={lang === 'es' ? 'Cant. base' : 'Default qty'}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleUpdateTariff(t.id, {
+                                      subItems: t.subItems?.filter((s) => s.id !== sub.id),
+                                    })
+                                  }
+                                  aria-label={`Remove ${sub.label}`}
+                                  className="p-0.5 text-[#6e6e73] hover:text-[#dc2626]"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      <TariffSubItemAdder
+                        tariff={t}
+                        lang={lang}
+                        onAdd={(newSub) => {
+                          const existing = t.subItems ?? [];
+                          const baseList: PdaSubItemDef[] =
+                            existing.length > 0
+                              ? existing
+                              : [
+                                  {
+                                    id: `sub-base-${t.id}`,
+                                    label: `${t.concept} (Base)`,
+                                    labelEn: `${t.conceptEn} (Base)`,
+                                    unitLabel: lang === 'es' ? 'Base' : 'Base',
+                                    rate: t.rate,
+                                    calcMode: 'per_qty',
+                                    defaultQty: 1,
+                                  },
+                                ];
+                          handleUpdateTariff(t.id, {
+                            formulaType: 'sub_items_breakdown',
+                            showZeroAmount: true,
+                            subItems: [...baseList, newSub],
+                          });
+                        }}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
+
+              {/* PDA Format Presets Manager */}
+              <div className="p-4 rounded-xl bg-[#f5f5f7] border border-[#e5e5ea] space-y-3">
+                <div className="text-[13px] font-semibold text-[#1d1d1f]">
+                  {lang === 'es'
+                    ? 'Formatos / Plantillas PDA disponibles'
+                    : 'Available PDA Format Presets'}
+                </div>
+                <form onSubmit={handleAddPdaFormat} className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+                  <input
+                    type="text"
+                    required
+                    value={newFormatName}
+                    onChange={(e) => setNewFormatName(e.target.value)}
+                    placeholder={lang === 'es' ? 'Nombre del formato PDA' : 'Preset name'}
+                    className="px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                  />
+                  <select
+                    value={newFormatVesselType}
+                    onChange={(e) => setNewFormatVesselType(e.target.value as PdaVesselType)}
+                    className="px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                  >
+                    {PDA_VESSEL_TYPE_OPTIONS.map((vt) => (
+                      <option key={vt} value={vt}>
+                        {vt}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={newFormatPurpose}
+                    onChange={(e) => setNewFormatPurpose(e.target.value as PdaPurpose)}
+                    className="px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                  >
+                    {PDA_PURPOSE_OPTIONS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      value={newFormatCargo}
+                      onChange={(e) => setNewFormatCargo(e.target.value)}
+                      placeholder="Cargo"
+                      className="flex-1 min-w-0 px-2 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                    />
+                    <input
+                      type="number"
+                      value={newFormatQty}
+                      onChange={(e) => setNewFormatQty(Number(e.target.value) || 0)}
+                      className="w-20 px-2 py-1.5 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-lg"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="px-3 py-1.5 text-[12px] font-medium text-white bg-[#1d1d1f] rounded-lg"
+                  >
+                    {lang === 'es' ? '+ Formato PDA' : '+ Add Preset'}
+                  </button>
+                </form>
+
+                <div className="space-y-1.5">
+                  {(hubState.pdaFormats ?? []).map((fmt) => (
+                    <div
+                      key={fmt.id}
+                      className="px-3 py-2 bg-white border border-[#e5e5ea] rounded-lg flex items-center justify-between gap-2 text-[12px]"
+                    >
+                      <div>
+                        <span className="font-semibold text-[#1d1d1f]">
+                          {lang === 'es' ? fmt.name : fmt.nameEn}
+                        </span>
+                        <span className="text-[#6e6e73] ml-2">
+                          {fmt.vesselType} · {fmt.purpose} · {fmt.defaultCargo} ({fmt.defaultQuantity.toLocaleString('en-US')} MT)
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePdaFormat(fmt.id)}
+                        className="p-1 text-[#6e6e73] hover:text-[#dc2626]"
+                        aria-label="Delete preset"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ISS Office Full Style & Bank Details Editor */}
+              {(() => {
+                const prof =
+                  hubState.pdaOfficeProfile ?? INITIAL_HUB_STATE.pdaOfficeProfile!;
+                return (
+                  <div className="p-4 rounded-xl bg-[#f5f5f7] border border-[#e5e5ea] space-y-3">
+                    <div className="text-[13px] font-semibold text-[#1d1d1f]">
+                      {lang === 'es'
+                        ? 'Datos de Oficina ISS y Cuenta Bancaria (Pie del PDF PDA)'
+                        : 'ISS Office Full Style & Bank Details (PDA PDF Footer)'}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[12px]">
+                      <input
+                        type="text"
+                        value={prof.officeTitle}
+                        onChange={(e) => handleUpdateOfficeProfile({ officeTitle: e.target.value })}
+                        placeholder="Office Title"
+                        className="px-2.5 py-1.5 bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                      <input
+                        type="text"
+                        value={prof.telephone}
+                        onChange={(e) => handleUpdateOfficeProfile({ telephone: e.target.value })}
+                        placeholder="Telephone"
+                        className="px-2.5 py-1.5 bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                      <input
+                        type="text"
+                        value={prof.addressLine1}
+                        onChange={(e) => handleUpdateOfficeProfile({ addressLine1: e.target.value })}
+                        placeholder="Address Line 1"
+                        className="px-2.5 py-1.5 bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                      <input
+                        type="text"
+                        value={prof.addressLine2}
+                        onChange={(e) => handleUpdateOfficeProfile({ addressLine2: e.target.value })}
+                        placeholder="Address Line 2"
+                        className="px-2.5 py-1.5 bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                      <input
+                        type="text"
+                        value={prof.bankName}
+                        onChange={(e) => handleUpdateOfficeProfile({ bankName: e.target.value })}
+                        placeholder="Bank Name"
+                        className="px-2.5 py-1.5 bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                      <input
+                        type="text"
+                        value={prof.accountNo}
+                        onChange={(e) => handleUpdateOfficeProfile({ accountNo: e.target.value })}
+                        placeholder="IBAN / Account No."
+                        className="px-2.5 py-1.5 font-mono bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                      <input
+                        type="text"
+                        value={prof.swiftNumber}
+                        onChange={(e) => handleUpdateOfficeProfile({ swiftNumber: e.target.value })}
+                        placeholder="SWIFT"
+                        className="px-2.5 py-1.5 font-mono bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                      <input
+                        type="text"
+                        value={prof.accountOwner}
+                        onChange={(e) => handleUpdateOfficeProfile({ accountOwner: e.target.value })}
+                        placeholder="Account Owner"
+                        className="px-2.5 py-1.5 bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
           {/* TAB 9: ORG CHART & DIRECTORY */}
           {tab === 'directory' && (
             <div className="space-y-6">
-              {/* Org Chart editor */}
-              <div className="space-y-2.5">
-                <div className="text-[13px] font-semibold text-[#1d1d1f]">
-                  {lang === 'es'
-                    ? 'Organigrama Empresarial (Nodos)'
-                    : 'Corporate Org Chart Nodes'}
+              {/* Full Hierarchical Org Chart Editor */}
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <div className="text-[14px] font-semibold text-[#1d1d1f]">
+                      {lang === 'es'
+                        ? 'Editor completo del Organigrama Empresarial'
+                        : 'Full Corporate Org Chart Editor'}
+                    </div>
+                    <p className="text-[12px] text-[#6e6e73]">
+                      {lang === 'es'
+                        ? 'Reordena nodos, agrega cargos en la misma línea o en un subnivel, y añade subdepartamentos o campos por tarjeta.'
+                        : 'Reorder nodes, add sibling or child positions, and manage nested sub-departments and custom fields.'}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  {(hubState.orgChart ?? []).map((node) => (
+
+                <div className="space-y-3">
+                  {(hubState.orgChart ?? []).map((node, idx, arr) => (
                     <div
                       key={node.id}
-                      className="p-3 rounded-xl border border-[#e5e5ea] bg-[#f5f5f7] grid grid-cols-1 sm:grid-cols-12 gap-2 items-center"
+                      className="p-4 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7] space-y-3"
                     >
-                      <span className="sm:col-span-1 font-mono text-[11px] font-semibold text-[#0066cc]">
-                        L{node.level}
-                      </span>
-                      <input
-                        type="text"
-                        value={lang === 'es' ? node.title : node.titleEn}
-                        onChange={(e) =>
-                          handleUpdateOrgNode(
-                            node.id,
-                            lang === 'es'
-                              ? { title: e.target.value }
-                              : { titleEn: e.target.value }
-                          )
-                        }
-                        aria-label="Org title"
-                        className="sm:col-span-4 px-2.5 py-1.5 text-[12px] font-medium bg-white border border-[#d2d2d7] rounded-md"
-                      />
-                      <input
-                        type="text"
-                        value={node.holderOrTeam}
-                        onChange={(e) =>
-                          handleUpdateOrgNode(node.id, { holderOrTeam: e.target.value })
-                        }
-                        aria-label="Holder or team"
-                        className="sm:col-span-4 px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
-                      />
-                      <input
-                        type="email"
-                        value={node.email ?? ''}
-                        onChange={(e) =>
-                          handleUpdateOrgNode(node.id, { email: e.target.value })
-                        }
-                        aria-label="Org email"
-                        className="sm:col-span-3 px-2.5 py-1.5 text-[11px] font-mono bg-white border border-[#d2d2d7] rounded-md"
-                      />
+                      {/* Primary Node Controls */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#e5e5ea]">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-0.5">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveOrgNode(node.id, -1)}
+                              disabled={idx === 0}
+                              aria-label="Move node up"
+                              className="p-1 bg-white border border-[#d2d2d7] rounded disabled:opacity-40"
+                            >
+                              <ChevronUp className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveOrgNode(node.id, 1)}
+                              disabled={idx === arr.length - 1}
+                              aria-label="Move node down"
+                              className="p-1 bg-white border border-[#d2d2d7] rounded disabled:opacity-40"
+                            >
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <select
+                            value={node.level}
+                            onChange={(e) =>
+                              handleUpdateOrgNode(node.id, {
+                                level: Number(e.target.value) as 1 | 2 | 3,
+                              })
+                            }
+                            aria-label="Node tier level"
+                            className="px-2 py-1 text-[11px] font-mono font-semibold text-[#0066cc] bg-white border border-[#d2d2d7] rounded"
+                          >
+                            <option value={1}>L1 Dirección</option>
+                            <option value={2}>L2 Gerencia / Área</option>
+                            <option value={3}>L3 Coordinación / Turno</option>
+                          </select>
+
+                          <select
+                            value={node.reportsTo ?? ''}
+                            onChange={(e) =>
+                              handleUpdateOrgNode(node.id, {
+                                reportsTo: e.target.value || undefined,
+                              })
+                            }
+                            aria-label="Reports to"
+                            className="px-2 py-1 text-[11px] bg-white border border-[#d2d2d7] rounded max-w-[190px]"
+                          >
+                            <option value="">
+                              {lang === 'es' ? 'Sin superior (Raíz)' : 'No parent (Root)'}
+                            </option>
+                            {arr
+                              .filter((candidate) => candidate.id !== node.id)
+                              .map((candidate) => (
+                                <option key={candidate.id} value={candidate.id}>
+                                  → {lang === 'es' ? candidate.title : candidate.titleEn}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleAddOrgNodeRelative(node, 'sibling')}
+                            className="px-2.5 py-1 text-[11px] font-medium bg-white hover:bg-[#ebebef] border border-[#d2d2d7] rounded"
+                          >
+                            + {lang === 'es' ? 'En la misma línea' : 'Same-level node'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddOrgNodeRelative(node, 'child')}
+                            className="px-2.5 py-1 text-[11px] font-medium text-[#0066cc] bg-white hover:bg-[#eef6ff] border border-[#cde3ff] rounded"
+                          >
+                            + {lang === 'es' ? 'Subnodo / Subnivel' : 'Child sub-node'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteOrgNode(node.id)}
+                            aria-label="Delete org node"
+                            className="p-1 text-[#6e6e73] hover:text-[#dc2626]"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                        <input
+                          type="text"
+                          value={lang === 'es' ? node.department : node.departmentEn}
+                          onChange={(e) =>
+                            handleUpdateOrgNode(
+                              node.id,
+                              lang === 'es'
+                                ? { department: e.target.value }
+                                : { departmentEn: e.target.value }
+                            )
+                          }
+                          placeholder={lang === 'es' ? 'Departamento' : 'Department'}
+                          className="sm:col-span-3 px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                        />
+                        <input
+                          type="text"
+                          value={lang === 'es' ? node.title : node.titleEn}
+                          onChange={(e) =>
+                            handleUpdateOrgNode(
+                              node.id,
+                              lang === 'es'
+                                ? { title: e.target.value }
+                                : { titleEn: e.target.value }
+                            )
+                          }
+                          placeholder={lang === 'es' ? 'Cargo / Puesto' : 'Role / Title'}
+                          className="sm:col-span-3 px-2.5 py-1.5 text-[12px] font-medium bg-white border border-[#d2d2d7] rounded-md"
+                        />
+                        <input
+                          type="text"
+                          value={node.holderOrTeam}
+                          onChange={(e) =>
+                            handleUpdateOrgNode(node.id, { holderOrTeam: e.target.value })
+                          }
+                          placeholder={lang === 'es' ? 'Titular o equipo' : 'Holder / Team'}
+                          className="sm:col-span-3 px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-md"
+                        />
+                        <input
+                          type="email"
+                          value={node.email ?? ''}
+                          onChange={(e) =>
+                            handleUpdateOrgNode(node.id, { email: e.target.value })
+                          }
+                          placeholder="Email"
+                          className="sm:col-span-3 px-2.5 py-1.5 text-[11px] font-mono bg-white border border-[#d2d2d7] rounded-md"
+                        />
+                      </div>
+
+                      {/* Node Custom Fields */}
+                      <div className="pl-3 border-l-2 border-[#d2d2d7] space-y-1.5">
+                        <div className="flex items-center justify-between text-[11px] font-semibold text-[#424245]">
+                          <span>
+                            {lang === 'es' ? 'Campos del nodo' : 'Node custom fields'} (
+                            {node.customFields?.length ?? 0})
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleAddOrgCustomField(node.id)}
+                            className="inline-flex items-center gap-1 text-[#0066cc] hover:underline"
+                          >
+                            <Plus className="w-3 h-3" />
+                            {lang === 'es' ? 'Agregar campo' : 'Add field'}
+                          </button>
+                        </div>
+                        {(node.customFields ?? []).map((cf) => (
+                          <div key={cf.id} className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={cf.label}
+                              onChange={(e) =>
+                                handleUpdateOrgCustomField(node.id, cf.id, {
+                                  label: e.target.value,
+                                })
+                              }
+                              className="w-40 px-2 py-1 text-[11px] font-medium bg-white border border-[#d2d2d7] rounded"
+                            />
+                            <input
+                              type="text"
+                              value={cf.value}
+                              onChange={(e) =>
+                                handleUpdateOrgCustomField(node.id, cf.id, {
+                                  value: e.target.value,
+                                })
+                              }
+                              className="flex-1 px-2 py-1 text-[11px] bg-white border border-[#d2d2d7] rounded"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteOrgCustomField(node.id, cf.id)}
+                              className="p-1 text-[#6e6e73] hover:text-[#dc2626]"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Node Nested Sub-Departments */}
+                      <div className="pl-3 border-l-2 border-[#0066cc]/40 space-y-2">
+                        <div className="flex items-center justify-between text-[11px] font-semibold text-[#0066cc]">
+                          <span>
+                            {lang === 'es' ? 'Subdepartamentos' : 'Sub-departments'} (
+                            {node.subDepartments?.length ?? 0})
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleAddOrgSubDept(node.id)}
+                            className="inline-flex items-center gap-1 hover:underline"
+                          >
+                            <Plus className="w-3 h-3" />
+                            {lang === 'es' ? 'Agregar subdepartamento' : 'Add sub-department'}
+                          </button>
+                        </div>
+
+                        {(node.subDepartments ?? []).map((sub) => (
+                          <div
+                            key={sub.id}
+                            className="p-2.5 bg-white border border-[#d2d2d7] rounded-lg space-y-2"
+                          >
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-1.5 items-center">
+                              <input
+                                type="text"
+                                value={lang === 'es' ? sub.name : sub.nameEn ?? sub.name}
+                                onChange={(e) =>
+                                  handleUpdateOrgSubDept(
+                                    node.id,
+                                    sub.id,
+                                    lang === 'es'
+                                      ? { name: e.target.value }
+                                      : { nameEn: e.target.value }
+                                  )
+                                }
+                                placeholder="Subdepartamento"
+                                className="sm:col-span-4 px-2 py-1 text-[11.5px] font-medium bg-[#f5f5f7] border border-[#d2d2d7] rounded"
+                              />
+                              <input
+                                type="text"
+                                value={sub.leadOrTeam}
+                                onChange={(e) =>
+                                  handleUpdateOrgSubDept(node.id, sub.id, {
+                                    leadOrTeam: e.target.value,
+                                  })
+                                }
+                                placeholder="Responsable"
+                                className="sm:col-span-4 px-2 py-1 text-[11.5px] bg-[#f5f5f7] border border-[#d2d2d7] rounded"
+                              />
+                              <input
+                                type="email"
+                                value={sub.email ?? ''}
+                                onChange={(e) =>
+                                  handleUpdateOrgSubDept(node.id, sub.id, {
+                                    email: e.target.value,
+                                  })
+                                }
+                                placeholder="Email"
+                                className="sm:col-span-3 px-2 py-1 text-[11px] font-mono bg-[#f5f5f7] border border-[#d2d2d7] rounded"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteOrgSubDept(node.id, sub.id)}
+                                className="sm:col-span-1 justify-self-end p-1 text-[#6e6e73] hover:text-[#dc2626]"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            <div className="flex items-center justify-between text-[10.5px] text-[#6e6e73]">
+                              <span>
+                                {lang === 'es' ? 'Campos internos:' : 'Nested fields:'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleAddOrgCustomField(node.id, sub.id)}
+                                className="text-[#0066cc] hover:underline"
+                              >
+                                + {lang === 'es' ? 'Campo' : 'Field'}
+                              </button>
+                            </div>
+
+                            {(sub.fields ?? []).map((sf) => (
+                              <div key={sf.id} className="flex items-center gap-1.5">
+                                <input
+                                  type="text"
+                                  value={sf.label}
+                                  onChange={(e) =>
+                                    handleUpdateOrgCustomField(
+                                      node.id,
+                                      sf.id,
+                                      { label: e.target.value },
+                                      sub.id
+                                    )
+                                  }
+                                  className="w-36 px-2 py-0.5 text-[11px] bg-[#f5f5f7] border border-[#d2d2d7] rounded"
+                                />
+                                <input
+                                  type="text"
+                                  value={sf.value}
+                                  onChange={(e) =>
+                                    handleUpdateOrgCustomField(
+                                      node.id,
+                                      sf.id,
+                                      { value: e.target.value },
+                                      sub.id
+                                    )
+                                  }
+                                  className="flex-1 px-2 py-0.5 text-[11px] bg-[#f5f5f7] border border-[#d2d2d7] rounded"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleDeleteOrgCustomField(node.id, sf.id, sub.id)
+                                  }
+                                  className="p-0.5 text-[#6e6e73] hover:text-[#dc2626]"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -3953,8 +5979,1726 @@ export function ContentManagerModal({
               </div>
             </div>
           )}
+          {/* TAB: PRODUCT TECHNICAL DOSSIERS */}
+          {tab === 'products' && (
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={editingDossier?.id ?? ''}
+                    onChange={(e) => setSelectedDossierId(e.target.value)}
+                    aria-label={lang === 'es' ? 'Seleccionar producto' : 'Select commodity'}
+                    className="px-3 py-2 text-[13px] font-medium bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg max-w-md"
+                  >
+                    {portDossiers.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.code} · {lang === 'es' ? d.name : d.nameEn}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleAddProductDossier}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-white bg-[#0066cc] rounded-lg"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    {lang === 'es' ? 'Nueva ficha de producto' : 'New product dossier'}
+                  </button>
+                </div>
+
+                {editingDossier && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteProductDossier(editingDossier.id)}
+                    className="inline-flex items-center gap-1 text-[12px] text-[#dc2626] hover:underline"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    {lang === 'es' ? 'Eliminar ficha' : 'Delete dossier'}
+                  </button>
+                )}
+              </div>
+
+              {editingDossier ? (
+                <div className="p-4 rounded-xl border border-[#e5e5ea] bg-white space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? 'Código' : 'Code'}
+                      </label>
+                      <input
+                        type="text"
+                        value={editingDossier.code}
+                        onChange={(e) =>
+                          handleUpdateProductDossier(editingDossier.id, {
+                            code: e.target.value,
+                          })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] font-mono bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? 'Nombre del producto (ES)' : 'Commodity Name (EN)'}
+                      </label>
+                      <input
+                        type="text"
+                        value={lang === 'es' ? editingDossier.name : editingDossier.nameEn}
+                        onChange={(e) =>
+                          handleUpdateProductDossier(
+                            editingDossier.id,
+                            lang === 'es'
+                              ? { name: e.target.value }
+                              : { nameEn: e.target.value }
+                          )
+                        }
+                        className="w-full px-2.5 py-1.5 text-[13px] font-semibold bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        UN / IMO
+                      </label>
+                      <div className="flex gap-1.5">
+                        <input
+                          type="text"
+                          value={editingDossier.unNumber ?? ''}
+                          onChange={(e) =>
+                            handleUpdateProductDossier(editingDossier.id, {
+                              unNumber: e.target.value,
+                            })
+                          }
+                          placeholder="UN"
+                          className="w-24 px-2 py-1.5 text-[12px] font-mono bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                        />
+                        <input
+                          type="text"
+                          value={editingDossier.imoClass ?? ''}
+                          onChange={(e) =>
+                            handleUpdateProductDossier(editingDossier.id, {
+                              imoClass: e.target.value,
+                            })
+                          }
+                          placeholder="IMO"
+                          className="flex-1 px-2 py-1.5 text-[12px] font-mono bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? 'Muelles en puerto' : 'Authorized Berths'}
+                      </label>
+                      <input
+                        type="text"
+                        value={editingDossier.coatzacoalcosBerths}
+                        onChange={(e) =>
+                          handleUpdateProductDossier(editingDossier.id, {
+                            coatzacoalcosBerths: e.target.value,
+                          })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] font-mono bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? 'Terminales / Cesionarios' : 'Terminals / Concessionaires'}
+                      </label>
+                      <input
+                        type="text"
+                        value={editingDossier.concessionaires}
+                        onChange={(e) =>
+                          handleUpdateProductDossier(editingDossier.id, {
+                            concessionaires: e.target.value,
+                          })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  {/* HDS / PEMEX Safety Sheet Fields */}
+                  <div className="p-3 rounded-lg bg-[#fffbeb] border border-[#fde68a] space-y-2.5">
+                    <div className="text-[11.5px] font-semibold text-[#92400e]">
+                      {lang === 'es'
+                        ? 'Hoja de Datos de Seguridad (HDS PEMEX / SGA NOM-018)'
+                        : 'Safety Data Sheet (PEMEX HDS / GHS)'}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      <div>
+                        <label className="block text-[10.5px] text-[#6e6e73] mb-1">
+                          CAS
+                        </label>
+                        <input
+                          type="text"
+                          value={editingDossier.casNumber ?? ''}
+                          onChange={(e) =>
+                            handleUpdateProductDossier(editingDossier.id, {
+                              casNumber: e.target.value,
+                            })
+                          }
+                          placeholder="ej. 67-64-1"
+                          className="w-full px-2 py-1 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10.5px] text-[#6e6e73] mb-1">
+                          {lang === 'es' ? 'Punto de Inflamación' : 'Flash Point'}
+                        </label>
+                        <input
+                          type="text"
+                          value={
+                            lang === 'es'
+                              ? editingDossier.flashPoint ?? ''
+                              : editingDossier.flashPointEn ?? editingDossier.flashPoint ?? ''
+                          }
+                          onChange={(e) =>
+                            handleUpdateProductDossier(
+                              editingDossier.id,
+                              lang === 'es'
+                                ? { flashPoint: e.target.value }
+                                : { flashPointEn: e.target.value }
+                            )
+                          }
+                          placeholder="ej. -43 °C (copa cerrada)"
+                          className="w-full px-2 py-1 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10.5px] text-[#6e6e73] mb-1">
+                          NFPA 704 (S / I / R / E)
+                        </label>
+                        <input
+                          type="text"
+                          value={editingDossier.nfpa704 ?? ''}
+                          onChange={(e) =>
+                            handleUpdateProductDossier(editingDossier.id, {
+                              nfpa704: e.target.value,
+                            })
+                          }
+                          placeholder="ej. Salud 2 · Inflam. 3 · React. 0"
+                          className="w-full px-2 py-1 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-[10.5px] text-[#6e6e73] mb-1">
+                          {lang === 'es' ? 'Resumen HDS / Toxicidad' : 'HDS / Toxicity Summary'}
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={
+                            lang === 'es'
+                              ? editingDossier.hdsPemexSummary ?? ''
+                              : editingDossier.hdsPemexSummaryEn ??
+                                editingDossier.hdsPemexSummary ??
+                                ''
+                          }
+                          onChange={(e) =>
+                            handleUpdateProductDossier(
+                              editingDossier.id,
+                              lang === 'es'
+                                ? { hdsPemexSummary: e.target.value }
+                                : { hdsPemexSummaryEn: e.target.value }
+                            )
+                          }
+                          className="w-full px-2 py-1 text-[12px] bg-white border border-[#d2d2d7] rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10.5px] text-[#6e6e73] mb-1">
+                          {lang === 'es' ? 'EPP Obligatorio' : 'Required PPE'}
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={
+                            lang === 'es'
+                              ? editingDossier.ppeRequired ?? ''
+                              : editingDossier.ppeRequiredEn ??
+                                editingDossier.ppeRequired ??
+                                ''
+                          }
+                          onChange={(e) =>
+                            handleUpdateProductDossier(
+                              editingDossier.id,
+                              lang === 'es'
+                                ? { ppeRequired: e.target.value }
+                                : { ppeRequiredEn: e.target.value }
+                            )
+                          }
+                          className="w-full px-2 py-1 text-[12px] bg-white border border-[#d2d2d7] rounded"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? '01. Identidad del Producto' : '01. Commodity Identity'}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          lang === 'es'
+                            ? editingDossier.identity
+                            : editingDossier.identityEn
+                        }
+                        onChange={(e) =>
+                          handleUpdateProductDossier(
+                            editingDossier.id,
+                            lang === 'es'
+                              ? { identity: e.target.value }
+                              : { identityEn: e.target.value }
+                          )
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? '02. Estado y Riesgo' : '02. Physical State & Hazard'}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          lang === 'es'
+                            ? editingDossier.stateAndHazard
+                            : editingDossier.stateAndHazardEn
+                        }
+                        onChange={(e) =>
+                          handleUpdateProductDossier(
+                            editingDossier.id,
+                            lang === 'es'
+                              ? { stateAndHazard: e.target.value }
+                              : { stateAndHazardEn: e.target.value }
+                          )
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? '03. Compatibilidad' : '03. Compatibility'}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          lang === 'es'
+                            ? editingDossier.compatibility
+                            : editingDossier.compatibilityEn
+                        }
+                        onChange={(e) =>
+                          handleUpdateProductDossier(
+                            editingDossier.id,
+                            lang === 'es'
+                              ? { compatibility: e.target.value }
+                              : { compatibilityEn: e.target.value }
+                          )
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? '04. Calidad y Muestreo' : '04. Quality & Sampling'}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          lang === 'es'
+                            ? editingDossier.qualityControl
+                            : editingDossier.qualityControlEn
+                        }
+                        onChange={(e) =>
+                          handleUpdateProductDossier(
+                            editingDossier.id,
+                            lang === 'es'
+                              ? { qualityControl: e.target.value }
+                              : { qualityControlEn: e.target.value }
+                          )
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? '05. Temperatura y Presión' : '05. Temperature & Pressure'}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          lang === 'es'
+                            ? editingDossier.temperatureLimits
+                            : editingDossier.temperatureLimitsEn
+                        }
+                        onChange={(e) =>
+                          handleUpdateProductDossier(
+                            editingDossier.id,
+                            lang === 'es'
+                              ? { temperatureLimits: e.target.value }
+                              : { temperatureLimitsEn: e.target.value }
+                          )
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? '06. Conexiones / Bridas' : '06. Connection Specs'}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          lang === 'es'
+                            ? editingDossier.connectionSpecs
+                            : editingDossier.connectionSpecsEn
+                        }
+                        onChange={(e) =>
+                          handleUpdateProductDossier(
+                            editingDossier.id,
+                            lang === 'es'
+                              ? { connectionSpecs: e.target.value }
+                              : { connectionSpecsEn: e.target.value }
+                          )
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? '07. Método y Rates de Transferencia' : '07. Transfer Method & Rates'}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          lang === 'es'
+                            ? editingDossier.transferRates
+                            : editingDossier.transferRatesEn
+                        }
+                        onChange={(e) =>
+                          handleUpdateProductDossier(
+                            editingDossier.id,
+                            lang === 'es'
+                              ? { transferRates: e.target.value }
+                              : { transferRatesEn: e.target.value }
+                          )
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? '08. Estabilidad / Inhibidores / Riesgos' : '08. Stability & Hazards'}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          lang === 'es'
+                            ? editingDossier.stabilityControl
+                            : editingDossier.stabilityControlEn
+                        }
+                        onChange={(e) =>
+                          handleUpdateProductDossier(
+                            editingDossier.id,
+                            lang === 'es'
+                              ? { stabilityControl: e.target.value }
+                              : { stabilityControlEn: e.target.value }
+                          )
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-[11px] text-[#6e6e73] mb-1">
+                        {lang === 'es' ? '09. Terminación y Purga de Línea' : '09. Termination & Line Purging'}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          lang === 'es'
+                            ? editingDossier.terminationProcedure
+                            : editingDossier.terminationProcedureEn
+                        }
+                        onChange={(e) =>
+                          handleUpdateProductDossier(
+                            editingDossier.id,
+                            lang === 'es'
+                              ? { terminationProcedure: e.target.value }
+                              : { terminationProcedureEn: e.target.value }
+                          )
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#991b1b] mb-1">
+                      {lang === 'es'
+                        ? '10. Criterios de Rechazo / Parada de Emergencia'
+                        : '10. Rejection / Emergency Stop Criteria'}
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={
+                        lang === 'es'
+                          ? editingDossier.rejectionCriteria
+                          : editingDossier.rejectionCriteriaEn
+                      }
+                      onChange={(e) =>
+                        handleUpdateProductDossier(
+                          editingDossier.id,
+                          lang === 'es'
+                            ? { rejectionCriteria: e.target.value }
+                            : { rejectionCriteriaEn: e.target.value }
+                        )
+                      }
+                      className="w-full px-2.5 py-1.5 text-[12px] bg-[#fef2f2] border border-[#fecaca] rounded-lg text-[#7f1d1d]"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 text-center text-[13px] text-[#6e6e73] bg-[#f5f5f7] rounded-xl">
+                  {lang === 'es'
+                    ? 'Aún no hay fichas técnicas individuales para este puerto. Pulsa "Nueva ficha de producto" para crear una.'
+                    : 'No individual product dossiers for this port yet. Click "New product dossier" to add one.'}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB: AUTHORITIES & CREW CHANGE PROCEDURE */}
+          {tab === 'authorities' && (() => {
+            const authoritiesList = hubState.authorities ?? INITIAL_HUB_STATE.authorities ?? [];
+            const crewCfg: CrewChangeGuideConfig =
+              hubState.crewChangeProcedure ?? INITIAL_HUB_STATE.crewChangeProcedure!;
+            const spareCfg: SparePartsProcedureConfig =
+              hubState.sparePartsProcedure ?? INITIAL_HUB_STATE.sparePartsProcedure!;
+            const AGENCY_CHOICES: AuthorityAgency[] = [
+              'Aduana',
+              'ASIPONA',
+              'Capitanía de Puerto',
+              'INM',
+              'Sanidad Internacional',
+              'SENASICA',
+            ];
+
+            const parseLines = (raw: string) =>
+              raw
+                .split('\n')
+                .map((l) => l.trim())
+                .filter(Boolean);
+
+            const updateAuthoritiesList = (
+              next: AuthorityRequirement[],
+              msgEs = 'Autoridades actualizadas.',
+              msgEn = 'Authorities updated.'
+            ) => {
+              onUpdateState((prev) => ({ ...prev, authorities: next }));
+              notifySaved(lang === 'es' ? msgEs : msgEn);
+            };
+
+            const updateCrewCfg = (patch: Partial<CrewChangeGuideConfig>) => {
+              onUpdateState((prev) => ({
+                ...prev,
+                crewChangeProcedure: {
+                  ...(prev.crewChangeProcedure ?? crewCfg),
+                  ...patch,
+                  updatedAt: new Date().toISOString().slice(0, 10),
+                },
+              }));
+              notifySaved(
+                lang === 'es'
+                  ? 'Crew Change Procedure actualizado.'
+                  : 'Crew Change Procedure updated.'
+              );
+            };
+
+            const updateSpareCfg = (patch: Partial<SparePartsProcedureConfig>) => {
+              onUpdateState((prev) => ({
+                ...prev,
+                sparePartsProcedure: {
+                  ...(prev.sparePartsProcedure ?? spareCfg),
+                  ...patch,
+                  updatedAt: new Date().toISOString().slice(0, 10),
+                },
+              }));
+              notifySaved(
+                lang === 'es'
+                  ? 'Spare Parts Procedure actualizado.'
+                  : 'Spare Parts Procedure updated.'
+              );
+            };
+
+            return (
+              <div className="space-y-6">
+                {/* Drive Folder Shortcuts */}
+                <div className="p-4 rounded-xl bg-[#f5f5f7] border border-[#e5e5ea] space-y-3">
+                  <div className="text-[13px] font-semibold text-[#1d1d1f]">
+                    {lang === 'es'
+                      ? 'Carpetas Drive de Respaldo y Formatos (Accesos Directos)'
+                      : 'Backup & Formats Google Drive Folders (Direct Links)'}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        {lang === 'es'
+                          ? 'Carpeta Drive para PDAs Generadas'
+                          : 'Drive Folder for Generated PDAs'}
+                      </label>
+                      <input
+                        type="url"
+                        value={hubState.pdaDriveFolderUrl ?? ''}
+                        onChange={(e) => {
+                          onUpdateState((prev) => ({
+                            ...prev,
+                            pdaDriveFolderUrl: e.target.value,
+                          }));
+                        }}
+                        placeholder="https://drive.google.com/drive/folders/..."
+                        className="w-full px-3 py-1.5 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        {lang === 'es'
+                          ? 'Carpeta Drive de Formatos de Autoridades'
+                          : 'Authorities Formats Drive Folder URL'}
+                      </label>
+                      <input
+                        type="url"
+                        value={hubState.authoritiesDriveFolderUrl ?? ''}
+                        onChange={(e) => {
+                          onUpdateState((prev) => ({
+                            ...prev,
+                            authoritiesDriveFolderUrl: e.target.value,
+                          }));
+                        }}
+                        placeholder="https://drive.google.com/drive/folders/..."
+                        className="w-full px-3 py-1.5 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Maritime Authorities Cards */}
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h4 className="text-[15px] font-display font-semibold text-[#1d1d1f]">
+                        {lang === 'es'
+                          ? 'Requerimientos, Circulares y Formatos de Autoridades'
+                          : 'Authority Requirements, Notices & Downloadable Formats'}
+                      </h4>
+                      <p className="text-[12px] text-[#6e6e73]">
+                        {lang === 'es'
+                          ? 'Edita Aduana, ASIPONA, Capitanía de Puerto, INM, Sanidad Internacional y SENASICA; carga nuevas circulares o ligas de descarga.'
+                          : 'Edit Customs, ASIPONA, Harbor Master, INM, International Health & SENASICA; add new notices or download links.'}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newItem: AuthorityRequirement = {
+                          id: `auth-${Date.now()}`,
+                          agency: 'SENASICA',
+                          portId: 'ALL',
+                          title: 'Nueva Circular / Requerimiento Operativo',
+                          titleEn: 'New Operational Notice / Requirement',
+                          summary: 'Descripción del requerimiento emitido por la autoridad.',
+                          summaryEn: 'Summary of the newly issued authority requirement.',
+                          newCircularNotice: 'Nueva circular vigente — verificar formatos antes de pre-arribo.',
+                          newCircularNoticeEn: 'New notice active — verify required templates prior to arrival.',
+                          effectiveDate: new Date().toISOString().slice(0, 10),
+                          requiredDocuments: ['Formato oficial de autoridad'],
+                          requiredDocumentsEn: ['Official authority template'],
+                          restrictions: 'Aplicable previo a libre plática / inicio de maniobras.',
+                          restrictionsEn: 'Applicable prior to free pratique / cargo operations.',
+                          driveFolderUrl: hubState.authoritiesDriveFolderUrl ?? '',
+                          formatLinks: [],
+                          updatedAt: new Date().toISOString().slice(0, 10),
+                        };
+                        updateAuthoritiesList(
+                          [newItem, ...authoritiesList],
+                          'Nueva circular agregada.',
+                          'New authority notice added.'
+                        );
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium bg-[#0066cc] hover:bg-[#0052a3] text-white rounded-lg"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      {lang === 'es'
+                        ? 'Nueva circular / requerimiento'
+                        : 'New circular / requirement'}
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {authoritiesList.map((auth) => (
+                      <div
+                        key={auth.id}
+                        className="p-4 rounded-xl bg-white border border-[#e5e5ea] space-y-3"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <select
+                              value={auth.agency}
+                              onChange={(e) =>
+                                updateAuthoritiesList(
+                                  authoritiesList.map((item) =>
+                                    item.id === auth.id
+                                      ? { ...item, agency: e.target.value as AuthorityAgency }
+                                      : item
+                                  )
+                                )
+                              }
+                              className="px-2.5 py-1 text-[12px] font-semibold bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                            >
+                              {AGENCY_CHOICES.map((ag) => (
+                                <option key={ag} value={ag}>
+                                  {ag}
+                                </option>
+                              ))}
+                            </select>
+                            <select
+                              value={auth.portId}
+                              onChange={(e) =>
+                                updateAuthoritiesList(
+                                  authoritiesList.map((item) =>
+                                    item.id === auth.id
+                                      ? { ...item, portId: e.target.value }
+                                      : item
+                                  )
+                                )
+                              }
+                              className="px-2.5 py-1 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                            >
+                              <option value="ALL">
+                                {lang === 'es' ? 'Todos los puertos' : 'All ports'}
+                              </option>
+                              <option value={portId}>{activePort?.name ?? portId}</option>
+                            </select>
+                            <input
+                              type="date"
+                              value={auth.effectiveDate}
+                              onChange={(e) =>
+                                updateAuthoritiesList(
+                                  authoritiesList.map((item) =>
+                                    item.id === auth.id
+                                      ? { ...item, effectiveDate: e.target.value }
+                                      : item
+                                  )
+                                )
+                              }
+                              className="px-2.5 py-1 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateAuthoritiesList(
+                                authoritiesList.filter((item) => item.id !== auth.id),
+                                'Requerimiento eliminado.',
+                                'Requirement removed.'
+                              )
+                            }
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-[#dc2626] hover:bg-[#fef2f2] rounded-lg"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            {lang === 'es' ? 'Eliminar' : 'Delete'}
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] text-[#6e6e73] mb-1">
+                              {lang === 'es' ? 'Título (ES)' : 'Title (ES)'}
+                            </label>
+                            <input
+                              type="text"
+                              value={auth.title}
+                              onChange={(e) =>
+                                updateAuthoritiesList(
+                                  authoritiesList.map((item) =>
+                                    item.id === auth.id
+                                      ? { ...item, title: e.target.value }
+                                      : item
+                                  )
+                                )
+                              }
+                              className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] text-[#6e6e73] mb-1">
+                              {lang === 'es' ? 'Aviso / Circular Reciente' : 'Recent Notice / Circular'}
+                            </label>
+                            <input
+                              type="text"
+                              value={auth.newCircularNotice ?? ''}
+                              onChange={(e) =>
+                                updateAuthoritiesList(
+                                  authoritiesList.map((item) =>
+                                    item.id === auth.id
+                                      ? { ...item, newCircularNotice: e.target.value }
+                                      : item
+                                  )
+                                )
+                              }
+                              className="w-full px-2.5 py-1.5 text-[12px] bg-[#fffbeb] border border-[#fde68a] rounded-lg"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] text-[#6e6e73] mb-1">
+                              {lang === 'es' ? 'Resumen operativo' : 'Operational summary'}
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={auth.summary}
+                              onChange={(e) =>
+                                updateAuthoritiesList(
+                                  authoritiesList.map((item) =>
+                                    item.id === auth.id
+                                      ? { ...item, summary: e.target.value }
+                                      : item
+                                  )
+                                )
+                              }
+                              className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] text-[#6e6e73] mb-1">
+                              {lang === 'es' ? 'Restricciones / Horarios' : 'Restrictions / Hours'}
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={auth.restrictions}
+                              onChange={(e) =>
+                                updateAuthoritiesList(
+                                  authoritiesList.map((item) =>
+                                    item.id === auth.id
+                                      ? { ...item, restrictions: e.target.value }
+                                      : item
+                                  )
+                                )
+                              }
+                              className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] text-[#6e6e73] mb-1">
+                            {lang === 'es'
+                              ? 'Documentos requeridos (uno por línea)'
+                              : 'Required documents (one per line)'}
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={auth.requiredDocuments.join('\n')}
+                            onChange={(e) =>
+                              updateAuthoritiesList(
+                                authoritiesList.map((item) =>
+                                  item.id === auth.id
+                                    ? {
+                                        ...item,
+                                        requiredDocuments: parseLines(e.target.value),
+                                      }
+                                    : item
+                                )
+                              )
+                            }
+                            className="w-full px-2.5 py-1.5 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] text-[#6e6e73] mb-1">
+                            {lang === 'es'
+                              ? 'Carpeta Drive específica de esta autoridad (opcional)'
+                              : 'Authority-specific Google Drive Folder URL (optional)'}
+                          </label>
+                          <input
+                            type="url"
+                            value={auth.driveFolderUrl ?? ''}
+                            onChange={(e) =>
+                              updateAuthoritiesList(
+                                authoritiesList.map((item) =>
+                                  item.id === auth.id
+                                    ? { ...item, driveFolderUrl: e.target.value }
+                                    : item
+                                )
+                              )
+                            }
+                            placeholder="https://drive.google.com/drive/folders/..."
+                            className="w-full px-2.5 py-1.5 text-[12px] font-mono bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                          />
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t border-[#f0f0f3]">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                              <span className="text-[11px] font-semibold text-[#1d1d1f]">
+                                {lang === 'es'
+                                  ? 'Ligas de Descarga / Justificaciones / Archivos Oficiales (Drive)'
+                                  : 'Downloadable Files / Justifications / Official Links (Drive)'}
+                              </span>
+                              <p className="text-[10.5px] text-[#6e6e73]">
+                                {lang === 'es'
+                                  ? 'Pega cualquier enlace de archivo de Google Drive y el botón de la tarjeta lo descargará directo.'
+                                  : 'Paste any Google Drive file URL and the card chip will trigger a direct download.'}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateAuthoritiesList(
+                                  authoritiesList.map((item) =>
+                                    item.id === auth.id
+                                      ? {
+                                          ...item,
+                                          formatLinks: [
+                                            ...item.formatLinks,
+                                            {
+                                              id: `fmt-${Date.now()}`,
+                                              label: lang === 'es' ? 'Documento / Justificación Oficial' : 'Official Document / Justification',
+                                              url:
+                                                auth.driveFolderUrl?.trim() ||
+                                                hubState.authoritiesDriveFolderUrl?.trim() ||
+                                                'https://drive.google.com/file/d/',
+                                              docType: 'Archivo oficial',
+                                            },
+                                          ],
+                                        }
+                                      : item
+                                  )
+                                )
+                              }
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-[#0066cc] bg-[#eef6ff] hover:bg-[#dcebff] border border-[#cde3ff] rounded-md"
+                            >
+                              <Plus className="w-3 h-3" />
+                              {lang === 'es' ? 'Agregar archivo / Drive' : 'Add Drive file'}
+                            </button>
+                          </div>
+
+                          {auth.formatLinks.map((lnk) => {
+                            const resolved = resolveDocumentLinkUrl(lnk.url);
+                            return (
+                              <div key={lnk.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                                <input
+                                  type="text"
+                                  value={lnk.label}
+                                  onChange={(e) =>
+                                    updateAuthoritiesList(
+                                      authoritiesList.map((item) =>
+                                        item.id === auth.id
+                                          ? {
+                                              ...item,
+                                              formatLinks: item.formatLinks.map((f) =>
+                                                f.id === lnk.id
+                                                  ? { ...f, label: e.target.value }
+                                                  : f
+                                              ),
+                                            }
+                                          : item
+                                      )
+                                    )
+                                  }
+                                  placeholder="Nombre del archivo o justificación"
+                                  className="md:col-span-4 px-2.5 py-1 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                                />
+                                <div className="md:col-span-5 space-y-0.5">
+                                  <input
+                                    type="url"
+                                    value={lnk.url}
+                                    onChange={(e) =>
+                                      updateAuthoritiesList(
+                                        authoritiesList.map((item) =>
+                                          item.id === auth.id
+                                            ? {
+                                                ...item,
+                                                formatLinks: item.formatLinks.map((f) =>
+                                                  f.id === lnk.id
+                                                    ? { ...f, url: e.target.value }
+                                                    : f
+                                                ),
+                                              }
+                                            : item
+                                        )
+                                      )
+                                    }
+                                    placeholder="https://drive.google.com/file/d/.../view"
+                                    className="w-full px-2.5 py-1 text-[12px] font-mono bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                                  />
+                                  {resolved.isDrive && resolved.isDirectDownload && (
+                                    <div className="text-[10px] font-medium text-[#0066cc]">
+                                      {lang === 'es'
+                                        ? '↓ Enlace Drive detectado: descarga directa automática'
+                                        : '↓ Drive file detected: direct download enabled'}
+                                    </div>
+                                  )}
+                                </div>
+                                <input
+                                  type="text"
+                                  list="auth-doctype-presets"
+                                  value={lnk.docType ?? ''}
+                                  onChange={(e) =>
+                                    updateAuthoritiesList(
+                                      authoritiesList.map((item) =>
+                                        item.id === auth.id
+                                          ? {
+                                              ...item,
+                                              formatLinks: item.formatLinks.map((f) =>
+                                                f.id === lnk.id
+                                                  ? { ...f, docType: e.target.value }
+                                                  : f
+                                              ),
+                                            }
+                                          : item
+                                      )
+                                    )
+                                  }
+                                  placeholder="Justificación / PDF"
+                                  className="md:col-span-2 px-2.5 py-1 text-[12px] bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateAuthoritiesList(
+                                      authoritiesList.map((item) =>
+                                        item.id === auth.id
+                                          ? {
+                                              ...item,
+                                              formatLinks: item.formatLinks.filter(
+                                                (f) => f.id !== lnk.id
+                                              ),
+                                            }
+                                          : item
+                                      )
+                                    )
+                                  }
+                                  className="md:col-span-1 flex justify-center p-1 text-[#dc2626] hover:bg-[#fef2f2] rounded-md"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            );
+                          })}
+                          <datalist id="auth-doctype-presets">
+                            <option value="Justificación" />
+                            <option value="Archivo oficial" />
+                            <option value="Formato oficial" />
+                            <option value="Circular / Oficio" />
+                            <option value="Restricción" />
+                            <option value="Portal" />
+                          </datalist>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Full Crew Change Procedure Editor (integrated under INM / Migración) */}
+                <div className="p-4 rounded-xl bg-[#f5f5f7] border border-[#e5e5ea] space-y-4">
+                  <div>
+                    <h4 className="text-[14px] font-display font-semibold text-[#1d1d1f]">
+                      Crew Change Procedure — INM (Migración)
+                    </h4>
+                    <p className="text-[12px] text-[#6e6e73]">
+                      {lang === 'es'
+                        ? 'Edita todos los apartados del procedimiento migratorio, buscador de nacionalidades (Appendix A) e información de Información Pre-Arribo.'
+                        : 'Edit all Crew Change Procedure immigration sections, Appendix A nationality list, and Pre-Arrival Information export fields.'}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        {lang === 'es' ? 'Título Principal' : 'Main Title'}
+                      </label>
+                      <input
+                        type="text"
+                        value={crewCfg.title}
+                        onChange={(e) => updateCrewCfg({ title: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        {lang === 'es' ? 'Subtítulo' : 'Subtitle'}
+                      </label>
+                      <input
+                        type="text"
+                        value={crewCfg.subtitle}
+                        onChange={(e) => updateCrewCfg({ subtitle: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                      01 · Entry Advisory
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={crewCfg.entryAdvisory}
+                      onChange={(e) => updateCrewCfg({ entryAdvisory: e.target.value })}
+                      className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        {lang === 'es'
+                          ? 'Nacionalidades Exentas (1 por línea)'
+                          : 'Visa-Exempt Notes (1 per line)'}
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={crewCfg.visaExemptNotes.join('\n')}
+                        onChange={(e) =>
+                          updateCrewCfg({ visaExemptNotes: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        {lang === 'es'
+                          ? 'Alternativas Calificadas de Visa (1 por línea)'
+                          : 'Qualifying Visa Alternatives (1 per line)'}
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={crewCfg.qualifyingAlternatives.join('\n')}
+                        onChange={(e) =>
+                          updateCrewCfg({ qualifyingAlternatives: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        02 · U.S. Visa Focus (C1/D1) (1 por línea)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={crewCfg.usC1d1Focus.join('\n')}
+                        onChange={(e) =>
+                          updateCrewCfg({ usC1d1Focus: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        03 · Risk Advisory & OK-to-Board Limits (1 por línea)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={crewCfg.riskAdvisoryBullets.join('\n')}
+                        onChange={(e) =>
+                          updateCrewCfg({ riskAdvisoryBullets: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        {lang === 'es'
+                          ? 'Documentos Obligatorios Arribo Aéreo (1 por línea)'
+                          : 'Mandatory Air Arrival Docs (1 per line)'}
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={crewCfg.airArrivalMandatoryDocs.join('\n')}
+                        onChange={(e) =>
+                          updateCrewCfg({ airArrivalMandatoryDocs: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        04 · Required Pre-Arrival Docs List (1 por línea)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={crewCfg.requiredDocsList.join('\n')}
+                        onChange={(e) =>
+                          updateCrewCfg({ requiredDocsList: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                      Minimum Lead Time Notice
+                    </label>
+                    <input
+                      type="text"
+                      value={crewCfg.minimumLeadTimeNotice}
+                      onChange={(e) =>
+                        updateCrewCfg({ minimumLeadTimeNotice: e.target.value })
+                      }
+                      className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        05 · On-Signers Steps (1 por línea)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={crewCfg.onSignerSteps.join('\n')}
+                        onChange={(e) =>
+                          updateCrewCfg({ onSignerSteps: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        05 · Off-Signers Steps (1 por línea)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={crewCfg.offSignerSteps.join('\n')}
+                        onChange={(e) =>
+                          updateCrewCfg({ offSignerSteps: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        06 · Working Hours & Permits (1 por línea)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={crewCfg.workingHoursBullets.join('\n')}
+                        onChange={(e) =>
+                          updateCrewCfg({ workingHoursBullets: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        07 · Customs & Baggage Rules (1 por línea)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={crewCfg.customsBaggageBullets.join('\n')}
+                        onChange={(e) =>
+                          updateCrewCfg({ customsBaggageBullets: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                      Appendix A · Intro & Nationality Lists (1 país/línea)
+                    </label>
+                    <input
+                      type="text"
+                      value={crewCfg.appendixIntro}
+                      onChange={(e) => updateCrewCfg({ appendixIntro: e.target.value })}
+                      className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg mb-2"
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                          A – C Countries
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={crewCfg.appendixAC.join('\n')}
+                          onChange={(e) =>
+                            updateCrewCfg({ appendixAC: parseLines(e.target.value) })
+                          }
+                          className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                          D – M Countries
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={crewCfg.appendixDM.join('\n')}
+                          onChange={(e) =>
+                            updateCrewCfg({ appendixDM: parseLines(e.target.value) })
+                          }
+                          className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                          N – Z Countries
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={crewCfg.appendixNZ.join('\n')}
+                          onChange={(e) =>
+                            updateCrewCfg({ appendixNZ: parseLines(e.target.value) })
+                          }
+                          className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PDF / Sedna Download-only ISS Office Block */}
+                  <div className="pt-3 border-t border-[#e5e5ea] space-y-3">
+                    <div className="text-[12px] font-semibold text-[#1d1d1f]">
+                      {lang === 'es'
+                        ? 'Datos de Oficina ISS (Solo incluidos en el PDF y Sedna descargable; ocultos en la página web)'
+                        : 'ISS Office Contact Block (Included ONLY in downloadable PDF & Sedna; hidden on webpage)'}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                          Office Address (PDF / Sedna)
+                        </label>
+                        <input
+                          type="text"
+                          value={crewCfg.officeAddress}
+                          onChange={(e) => updateCrewCfg({ officeAddress: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                          24/7 Regional Phone (PDF / Sedna)
+                        </label>
+                        <input
+                          type="text"
+                          value={crewCfg.regionalPhone}
+                          onChange={(e) => updateCrewCfg({ regionalPhone: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                          Key Personnel (1 per line — PDF / Sedna)
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={crewCfg.keyPersonnel.join('\n')}
+                          onChange={(e) =>
+                            updateCrewCfg({ keyPersonnel: parseLines(e.target.value) })
+                          }
+                          className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                          Port Email Directory (1 per line — PDF / Sedna)
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={crewCfg.emailDirectory.join('\n')}
+                          onChange={(e) =>
+                            updateCrewCfg({ emailDirectory: parseLines(e.target.value) })
+                          }
+                          className="w-full px-2.5 py-1.5 text-[12px] font-mono bg-white border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Full Spare Parts Procedure Editor (integrated under Aduana / Customs) */}
+                <div className="p-4 rounded-xl bg-[#f5f5f7] border border-[#e5e5ea] space-y-4">
+                  <div>
+                    <h4 className="text-[14px] font-display font-semibold text-[#1d1d1f]">
+                      Spare Parts Procedure — Aduana (Customs)
+                    </h4>
+                    <p className="text-[12px] text-[#6e6e73]">
+                      {lang === 'es'
+                        ? 'Edita reglas aduanales de importación de refacciones, consignatario, tiempos de despacho, artículos restringidos y datos ISS para PDF/Sedna.'
+                        : 'Edit customs spare parts importation guidelines, consignee formatting, clearance timelines, restricted items, and PDF/Sedna office block.'}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        {lang === 'es' ? 'Título Principal' : 'Main Title'}
+                      </label>
+                      <input
+                        type="text"
+                        value={spareCfg.title}
+                        onChange={(e) => updateSpareCfg({ title: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        {lang === 'es' ? 'Subtítulo' : 'Subtitle'}
+                      </label>
+                      <input
+                        type="text"
+                        value={spareCfg.subtitle}
+                        onChange={(e) => updateSpareCfg({ subtitle: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Importation Notice (ES)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={spareCfg.importationNotice}
+                        onChange={(e) => updateSpareCfg({ importationNotice: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Importation Notice (EN)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={spareCfg.importationNoticeEn}
+                        onChange={(e) => updateSpareCfg({ importationNoticeEn: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Consignee Formulation
+                      </label>
+                      <input
+                        type="text"
+                        value={spareCfg.consigneeFormulation}
+                        onChange={(e) => updateSpareCfg({ consigneeFormulation: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Customs Hours Note
+                      </label>
+                      <input
+                        type="text"
+                        value={spareCfg.customsHoursNote}
+                        onChange={(e) => updateSpareCfg({ customsHoursNote: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Itemized Listing Note
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={spareCfg.itemizedListingNote}
+                        onChange={(e) => updateSpareCfg({ itemizedListingNote: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Detailed Explanation Required
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={spareCfg.detailedExplanationNote}
+                        onChange={(e) => updateSpareCfg({ detailedExplanationNote: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Routing: Small Packages (&lt;$500 USD)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={spareCfg.smallPackageRouting}
+                        onChange={(e) => updateSpareCfg({ smallPackageRouting: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Routing: Large Shipments (&gt;$500 USD)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={spareCfg.largePackageRouting}
+                        onChange={(e) => updateSpareCfg({ largePackageRouting: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Restricted Items Col. 1 (1 per line)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={spareCfg.restrictedItemsCol1.join('\n')}
+                        onChange={(e) =>
+                          updateSpareCfg({ restrictedItemsCol1: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Restricted Items Col. 2 (1 per line)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={spareCfg.restrictedItemsCol2.join('\n')}
+                        onChange={(e) =>
+                          updateSpareCfg({ restrictedItemsCol2: parseLines(e.target.value) })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Pre-Approval &amp; Waybill Verification
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={spareCfg.preApprovalNote}
+                        onChange={(e) => updateSpareCfg({ preApprovalNote: e.target.value })}
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                        Invoice Address Footnote
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={spareCfg.invoiceAddressFootnote}
+                        onChange={(e) =>
+                          updateSpareCfg({ invoiceAddressFootnote: e.target.value })
+                        }
+                        className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  {/* PDF / Sedna Download-only ISS Consignee Block */}
+                  <div className="pt-3 border-t border-[#e5e5ea] space-y-3">
+                    <div className="text-[12px] font-semibold text-[#1d1d1f]">
+                      {lang === 'es'
+                        ? 'Consignatario y Dirección ISS (Solo incluidos en el PDF y Sedna descargable; ocultos en la página web)'
+                        : 'ISS Consignee & Office Address (Included ONLY in downloadable PDF & Sedna; hidden on webpage)'}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                          Office Company (PDF / Sedna)
+                        </label>
+                        <input
+                          type="text"
+                          value={spareCfg.officeCompany}
+                          onChange={(e) => updateSpareCfg({ officeCompany: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                          Office Address (PDF / Sedna)
+                        </label>
+                        <input
+                          type="text"
+                          value={spareCfg.officeAddress}
+                          onChange={(e) => updateSpareCfg({ officeAddress: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                          Office Phones (PDF / Sedna)
+                        </label>
+                        <input
+                          type="text"
+                          value={spareCfg.officePhones}
+                          onChange={(e) => updateSpareCfg({ officePhones: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
+                          Office Website (PDF / Sedna)
+                        </label>
+                        <input
+                          type="text"
+                          value={spareCfg.officeWebsite}
+                          onChange={(e) => updateSpareCfg({ officeWebsite: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-[12px] bg-white border border-[#d2d2d7] rounded-lg"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
   );
 }
+
+function TariffSubItemAdder({
+  tariff,
+  lang,
+  onAdd,
+}: {
+  tariff: TariffItem;
+  lang: Language;
+  onAdd: (sub: PdaSubItemDef) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [label, setLabel] = useState('');
+  const [calcMode, setCalcMode] = useState<PdaSubItemCalcMode>('per_qty');
+  const [rate, setRate] = useState<number>(0);
+  const [defaultQty, setDefaultQty] = useState<number>(1);
+
+  const handleSubmit = () => {
+    const clean = label.trim();
+    if (!clean) return;
+    onAdd({
+      id: `sub-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      label: clean,
+      labelEn: clean,
+      unitLabel: calcMode === 'fixed' ? 'Cuota fija' : 'Por servicio',
+      rate: Math.max(0, Number.isFinite(rate) ? rate : 0),
+      calcMode,
+      defaultQty: Math.max(0, Number.isFinite(defaultQty) ? defaultQty : 1),
+    });
+    setLabel('');
+    setRate(0);
+    setDefaultQty(1);
+    setOpen(false);
+  };
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-[#0066cc] bg-[#eef6ff] hover:bg-[#dcebff] border border-[#cde3ff] rounded-md transition-colors"
+      >
+        <Plus className="w-3 h-3" />
+        {lang === 'es' ? 'Agregar sub-servicio / valor al desplegable' : 'Add sub-service value'}
+      </button>
+    );
+  }
+
+  return (
+    <div className="p-2.5 rounded-lg bg-[#f5f5f7] border border-[#d2d2d7] grid grid-cols-1 sm:grid-cols-12 gap-1.5 items-center text-[11px]">
+      <input
+        type="text"
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        placeholder={lang === 'es' ? 'Sub-servicio (ej. Lancha Autoridades)' : 'Sub-service label'}
+        className="sm:col-span-4 px-2 py-1 bg-white border border-[#d2d2d7] rounded"
+      />
+      <select
+        value={calcMode}
+        onChange={(e) => setCalcMode(e.target.value as PdaSubItemCalcMode)}
+        aria-label="Sub-service calculation mode"
+        className="sm:col-span-3 px-2 py-1 bg-white border border-[#d2d2d7] rounded"
+      >
+        <option value="per_qty">{lang === 'es' ? 'Por servicio' : 'Per service'}</option>
+        <option value="fixed">{lang === 'es' ? 'Cuota fija' : 'Fixed fee'}</option>
+        <option value="grt_rate">GRT × factor</option>
+        <option value="grt_mov">GRT × factor × mov</option>
+        <option value="loa_hrs">LOA × factor × hrs</option>
+        <option value="tug_hrs">{lang === 'es' ? 'Tarifa × hrs remolque' : 'Rate × tug hrs'}</option>
+      </select>
+      <input
+        type="number"
+        step="0.01"
+        min={0}
+        value={rate}
+        onChange={(e) => setRate(Number(e.target.value) || 0)}
+        placeholder={tariff.currency}
+        aria-label={`Rate (${tariff.currency})`}
+        className="sm:col-span-2 px-2 py-1 text-right font-mono bg-white border border-[#d2d2d7] rounded"
+      />
+      <input
+        type="number"
+        step="0.5"
+        min={0}
+        value={defaultQty}
+        onChange={(e) => setDefaultQty(Number(e.target.value) || 0)}
+        placeholder="Qty"
+        aria-label="Default quantity"
+        className="sm:col-span-1 px-1.5 py-1 text-center font-mono bg-white border border-[#d2d2d7] rounded"
+      />
+      <div className="sm:col-span-2 flex items-center justify-end gap-1">
+        <button
+          type="button"
+          onClick={handleSubmit}
+          className="px-2.5 py-1 font-medium text-white bg-[#042447] hover:bg-[#0b315d] rounded"
+        >
+          {lang === 'es' ? 'Agregar' : 'Add'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="px-1.5 py-1 text-[#6e6e73] hover:text-[#1d1d1f]"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
+}
+

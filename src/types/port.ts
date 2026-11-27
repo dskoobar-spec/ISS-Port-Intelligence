@@ -104,11 +104,80 @@ export interface Berth {
 export interface ConcessionaireTerminal {
   id: string;
   name: string;
+  subdivision?: string;
+  subdivisionEn?: string;
+  imageUrl?: string;
+  coordinates?: string;
   cargoCategory: string;
   cargoCategoryEn: string;
   berthsUsed: string;
+  connectionSpecs?: string;
+  connectionSpecsEn?: string;
+  dischargeMethod?: string;
+  dischargeMethodEn?: string;
+  storageCapacity?: string;
+  storageCapacityEn?: string;
+  productsList?: string[];
   infrastructure: string;
   infrastructureEn: string;
+  restrictions?: string;
+  restrictionsEn?: string;
+  procedures?: string[];
+  proceduresEn?: string[];
+  auditSource?: string;
+}
+
+export interface ProductTechnicalDossier {
+  id: string;
+  portId: string;
+  code: string;
+  name: string;
+  nameEn: string;
+  cargoGroup: CargoGroup;
+  unNumber: string;
+  imoClass: string;
+  casNumber?: string;
+  flashPoint?: string;
+  flashPointEn?: string;
+  nfpa704?: string;
+  hdsPemexSummary?: string;
+  hdsPemexSummaryEn?: string;
+  ppeRequired?: string;
+  ppeRequiredEn?: string;
+  coatzacoalcosBerths: string;
+  concessionaires: string;
+  summary: string;
+  summaryEn: string;
+  identity: string;
+  identityEn: string;
+  stateAndHazard: string;
+  stateAndHazardEn: string;
+  compatibility: string;
+  compatibilityEn: string;
+  qualityControl: string;
+  qualityControlEn: string;
+  temperatureLimits: string;
+  temperatureLimitsEn: string;
+  connectionSpecs: string;
+  connectionSpecsEn: string;
+  transferRates: string;
+  transferRatesEn: string;
+  stabilityControl: string;
+  stabilityControlEn: string;
+  terminationProcedure: string;
+  terminationProcedureEn: string;
+  rejectionCriteria: string;
+  rejectionCriteriaEn: string;
+  referenceSource: string;
+  verificationStatus: VerificationStatus;
+}
+
+export interface TariffSheetSyncConfig {
+  sheetUrl: string;
+  lastSyncedAt?: string;
+  lastRowCount?: number;
+  mode: 'google_sheet' | 'apps_script' | 'manual_csv';
+  notes?: string;
 }
 
 export interface ProductHandlingSpec {
@@ -134,6 +203,28 @@ export interface StorageSummary {
   warehousesBreakdownEn: string;
 }
 
+export interface TerminalCommercialProfile {
+  positioningHeadline: string;
+  positioningHeadlineEn: string;
+  address?: string;
+  customsRegime: string;
+  customsRegimeEn: string;
+  commercialServices: string[];
+  commercialServicesEn: string[];
+  infrastructureHighlights: string[];
+  infrastructureHighlightsEn: string[];
+  vesselTypesServed: string[];
+  vesselTypesServedEn: string[];
+  connectivity: string;
+  connectivityEn: string;
+  customsProcess?: string[];
+  customsProcessEn?: string[];
+  operationalAdvantages: string[];
+  operationalAdvantagesEn: string[];
+  keyClientsOrTrades?: string[];
+  certifications?: string[];
+}
+
 export interface Terminal {
   id: string;
   portId: string;
@@ -152,6 +243,7 @@ export interface Terminal {
   productSpecs?: ProductHandlingSpec[];
   concessionaires?: ConcessionaireTerminal[];
   storageSummary?: StorageSummary;
+  commercialProfile?: TerminalCommercialProfile;
   procedures: string[];
   proceduresEn?: string[];
   restrictionsSummary: string;
@@ -224,6 +316,7 @@ export interface PortServiceItem {
   detail: string;
   detailEn: string;
   available: boolean;
+  documentLinks?: AuthorityFormatLink[];
 }
 
 export interface StrategicHighlightItem {
@@ -257,6 +350,103 @@ export interface PortGeneralInfo {
   diagramRightSubEn?: string;
 }
 
+export type PdaVesselType =
+  | 'Tanker / Chemical'
+  | 'Crude / Aframax'
+  | 'Gas Carrier (LPG/Ethane)'
+  | 'Dry Bulk'
+  | 'General Cargo / Steel'
+  | 'Container'
+  | 'Rail Ferry'
+  | 'Offshore';
+
+export type PdaPurpose =
+  | 'DISCHARGE'
+  | 'LOAD'
+  | 'LOAD & DISCHARGE'
+  | 'BUNKERING'
+  | 'CREW CHANGE'
+  | 'REPAIRS'
+  | 'ANCHORAGE';
+
+export type PdaChargeSection = 'port' | 'crew' | 'husbandry' | 'agency';
+
+export type PdaFormulaType =
+  | 'standard'
+  | 'port_dues_hybrid'
+  | 'dockage_loa_hours'
+  | 'pilotage_gt_movements'
+  | 'towage_tugs'
+  | 'agency_extra_days'
+  | 'flat_with_vat'
+  | 'sub_items_breakdown'
+  | 'custom_expression';
+
+export type PdaSubItemCalcMode =
+  | 'fixed'
+  | 'per_qty'
+  | 'grt_rate'
+  | 'loa_hrs'
+  | 'grt_mov'
+  | 'tug_hrs';
+
+export interface PdaSubItemDef {
+  id: string;
+  code?: string;
+  label: string;
+  labelEn: string;
+  unitLabel?: string;
+  rate: number;
+  calcMode: PdaSubItemCalcMode;
+  defaultQty: number;
+  defaultIncluded?: boolean;
+  notes?: string;
+}
+
+export interface PdaCustomField {
+  id: string;
+  label: string;
+  value: string;
+  column: 'left' | 'right';
+  active: boolean;
+}
+
+export interface PdaFormatPreset {
+  id: string;
+  portId: string | 'ALL';
+  name: string;
+  nameEn: string;
+  vesselType: PdaVesselType;
+  purpose: PdaPurpose;
+  defaultCargo: string;
+  defaultQuantity: number;
+  defaultOpsRateMtHr: number;
+  defaultTugsCount: number;
+  defaultTugHours: number;
+  defaultMovements: number;
+  defaultAreaId?: string;
+  customFields?: PdaCustomField[];
+  notes?: string;
+}
+
+export interface PdaOfficeAndBankProfile {
+  officeTitle: string;
+  addressLine1: string;
+  addressLine2: string;
+  telephone: string;
+  emails: string[];
+  bankTitle: string;
+  bankName: string;
+  bankAddress: string;
+  accountNo: string;
+  swiftNumber: string;
+  currencyLabel: string;
+  accountOwner: string;
+  remittanceNotice: string;
+  disclaimerText: string;
+  billingNoteText: string;
+}
+
 export interface TariffItem {
   id: string;
   portId: string;
@@ -273,6 +463,19 @@ export interface TariffItem {
   notesEn?: string;
   verificationStatus: VerificationStatus;
   active: boolean;
+  chargeSection?: PdaChargeSection;
+  formulaType?: PdaFormulaType;
+  customFormula?: string;
+  baseFixed?: number;
+  vatRate?: number;
+  movements?: number;
+  tugsCount?: number;
+  includedDays?: number;
+  applicableVesselTypes?: PdaVesselType[] | 'ALL';
+  applicablePurposes?: PdaPurpose[] | 'ALL';
+  remarksTemplate?: string;
+  showZeroAmount?: boolean;
+  subItems?: PdaSubItemDef[];
 }
 
 export interface PdaInput {
@@ -285,6 +488,39 @@ export interface PdaInput {
   cargoTons: number;
   tugHours: number;
   usdToMxn: number;
+  principal?: string;
+  invoiceNumber?: string;
+  purpose?: PdaPurpose;
+  vesselType?: PdaVesselType;
+  cargoDescription?: string;
+  dwt?: number;
+  beamM?: number;
+  opsRateMtHr?: number;
+  portStayHours?: number;
+  eta?: string;
+  tugsCount?: number;
+  movements?: number;
+  customFields?: PdaCustomField[];
+  inactiveFieldKeys?: string[];
+  excludedTariffIds?: string[];
+  serviceSubQuantities?: Record<string, Record<string, number>>;
+  tariffSectionOverrides?: Record<string, PdaChargeSection>;
+  tariffRateOverrides?: Record<
+    string,
+    { rate?: number; vatRate?: number; subRates?: Record<string, number> }
+  >;
+}
+
+export interface PdaLineItemSubBreakdown {
+  id: string;
+  label: string;
+  labelEn: string;
+  unitLabel?: string;
+  calcMode: PdaSubItemCalcMode;
+  qty: number;
+  unitRate: number;
+  subtotalOriginal: number;
+  subtotalUsd: number;
 }
 
 export interface PdaLineItem {
@@ -301,12 +537,22 @@ export interface PdaLineItem {
   amountUsd: number;
   amountMxn: number;
   verificationStatus: VerificationStatus;
+  chargeSection: PdaChargeSection;
+  originalChargeSection?: PdaChargeSection;
+  remarks: string;
+  vatAmountUsd?: number;
+  subBreakdown?: PdaLineItemSubBreakdown[];
 }
 
 export interface PdaResult {
   lineItems: PdaLineItem[];
   totalUsd: number;
   totalMxn: number;
+  portChargesTotalUsd: number;
+  crewChargesTotalUsd: number;
+  husbandryChargesTotalUsd: number;
+  agencyChargesTotalUsd: number;
+  effectivePortStayHours: number;
   pendingItemsCount: number;
 }
 
@@ -325,6 +571,22 @@ export interface DirectoryEntry {
   notesEn?: string;
 }
 
+export interface OrgCustomField {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export interface OrgSubDepartment {
+  id: string;
+  name: string;
+  nameEn?: string;
+  leadOrTeam: string;
+  leadOrTeamEn?: string;
+  email?: string;
+  fields?: OrgCustomField[];
+}
+
 export interface OrgChartNode {
   id: string;
   level: 1 | 2 | 3;
@@ -336,6 +598,8 @@ export interface OrgChartNode {
   holderOrTeamEn?: string;
   email?: string;
   reportsTo?: string;
+  subDepartments?: OrgSubDepartment[];
+  customFields?: OrgCustomField[];
 }
 
 export interface OperationalProcedure {
@@ -486,12 +750,167 @@ export interface PortProfile {
   marineServices?: PortServiceItem[];
 }
 
+export type AuthorityAgency =
+  | 'Aduana'
+  | 'ASIPONA'
+  | 'Capitanía de Puerto'
+  | 'INM'
+  | 'Sanidad Internacional'
+  | 'SENASICA';
+
+export interface AuthorityFormatLink {
+  id: string;
+  label: string;
+  labelEn?: string;
+  url: string;
+  docType?: string;
+}
+
+export interface AuthorityDocumentRow {
+  code?: string;
+  name: string;
+  nameEn?: string;
+  timingOrFormat?: string;
+  timingOrFormatEn?: string;
+  notes?: string;
+  notesEn?: string;
+}
+
+export interface AuthorityDocumentGroup {
+  id: string;
+  title: string;
+  titleEn: string;
+  rows: AuthorityDocumentRow[];
+}
+
+export interface AuthorityRequirement {
+  id: string;
+  agency: AuthorityAgency;
+  portId: string | 'ALL';
+  title: string;
+  titleEn: string;
+  summary: string;
+  summaryEn: string;
+  newCircularNotice?: string;
+  newCircularNoticeEn?: string;
+  effectiveDate: string;
+  requiredDocuments: string[];
+  requiredDocumentsEn?: string[];
+  documentGroups?: AuthorityDocumentGroup[];
+  restrictions: string;
+  restrictionsEn?: string;
+  driveFolderUrl?: string;
+  formatLinks: AuthorityFormatLink[];
+  updatedAt: string;
+}
+
+export interface PdaHistoryRecord {
+  id: string;
+  monthKey: string;
+  createdAt: string;
+  updatedAt: string;
+  filename: string;
+  portId: string;
+  areaId: string;
+  vesselName: string;
+  vesselType: PdaVesselType;
+  purpose: PdaPurpose;
+  cargoDescription: string;
+  cargoTons: number;
+  totalUsd: number;
+  totalMxn: number;
+  input: PdaInput;
+  notes?: string;
+}
+
+export interface CrewChangeChecklistRow {
+  id: string;
+  item: string;
+  itemEn: string;
+  onSigner: string;
+  offSigner: string;
+}
+
+export interface CrewChangeGuideConfig {
+  title: string;
+  subtitle: string;
+  entryAdvisory: string;
+  visaExemptNotes: string[];
+  qualifyingAlternatives: string[];
+  usC1d1Focus: string[];
+  airArrivalMandatoryDocs: string[];
+  riskAdvisoryBullets: string[];
+  requiredDocsList: string[];
+  minimumLeadTimeNotice: string;
+  onSignerSteps: string[];
+  offSignerSteps: string[];
+  workingHoursBullets: string[];
+  customsBaggageBullets: string[];
+  customsBaggageFootnote: string;
+  checklistRows: CrewChangeChecklistRow[];
+  appendixIntro: string;
+  appendixAC: string[];
+  appendixDM: string[];
+  appendixNZ: string[];
+  officeAddress: string;
+  regionalPhone: string;
+  keyPersonnel: string[];
+  emailDirectory: string[];
+  officialPortals: { label: string; url: string }[];
+  disclaimer: string;
+  updatedAt: string;
+}
+
+export interface SparePartsTimelineRow {
+  id: string;
+  label: string;
+  labelEn: string;
+  duration: string;
+}
+
+export interface SparePartsProcedureConfig {
+  title: string;
+  subtitle: string;
+  importationNoticeTitle: string;
+  importationNoticeTitleEn: string;
+  importationNotice: string;
+  importationNoticeEn: string;
+  consigneeFormulation: string;
+  itemizedListingNote: string;
+  detailedExplanationNote: string;
+  smallPackageRouting: string;
+  largePackageRouting: string;
+  timelines: SparePartsTimelineRow[];
+  customsHoursNote: string;
+  restrictedItemsCol1: string[];
+  restrictedItemsCol2: string[];
+  preApprovalNote: string;
+  invoiceAddressFootnote: string;
+  officeCompany: string;
+  officeAddress: string;
+  officePhones: string;
+  officeWebsite: string;
+  legalFooter: string;
+  updatedAt: string;
+}
+
 export interface HubState {
   ports: PortProfile[];
   areas: PortArea[];
   terminals: Terminal[];
   restrictions: PortRestriction[];
   tariffs: TariffItem[];
+  tariffSheetSync?: TariffSheetSyncConfig;
+  pdaFormats?: PdaFormatPreset[];
+  pdaOfficeProfile?: PdaOfficeAndBankProfile;
+  pdaDriveFolderUrl?: string;
+  pdaHistory?: PdaHistoryRecord[];
+  productDossiers?: ProductTechnicalDossier[];
+  authorities?: AuthorityRequirement[];
+  authoritiesDriveFolderUrl?: string;
+  servicesDriveFolderUrl?: string;
+  crewChangeProcedure?: CrewChangeGuideConfig;
+  sparePartsProcedure?: SparePartsProcedureConfig;
   directory: DirectoryEntry[];
   orgChart?: OrgChartNode[];
   procedures: OperationalProcedure[];

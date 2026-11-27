@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { ExternalLink, Plus, Ship, SlidersHorizontal } from 'lucide-react';
+import { ExternalLink, FileDown, Plus, Ship, SlidersHorizontal } from 'lucide-react';
 import { GAS_LINEUP_APP_URL } from '../data/nationalPortsSeed';
 import { cleanPortShortName } from '../utils/i18n';
+import { exportLineupToPdf, sanitizePdfFilename } from '../utils/pdfExporter';
+import { FilenamePromptModal } from './FilenamePromptModal';
 import type {
   Language,
   PortProfile,
@@ -13,6 +15,7 @@ interface VesselLineupSectionProps {
   port: PortProfile;
   lineup: VesselLineupEntry[];
   lang: Language;
+  disableDownloads?: boolean;
   onUpdateVesselStatus: (vesselId: string, status: VesselStatus) => void;
   onOpenLineupManager: () => void;
 }
@@ -39,15 +42,32 @@ export function VesselLineupSection({
   port,
   lineup,
   lang,
+  disableDownloads = false,
   onUpdateVesselStatus,
   onOpenLineupManager,
 }: VesselLineupSectionProps) {
   const [statusFilter, setStatusFilter] = useState<VesselStatus | 'ALL'>('ALL');
+  const [pdfPromptOpen, setPdfPromptOpen] = useState(false);
+
   const portVessels = lineup.filter((v) => v.portId === port.id);
   const filteredVessels = portVessels.filter(
     (v) => statusFilter === 'ALL' || v.status === statusFilter
   );
   const shortName = cleanPortShortName(port.name);
+  const defaultLineupFilename = sanitizePdfFilename(
+    `LineUp-${port.shortCode}-${new Date().toISOString().slice(0, 10)}`,
+    `LineUp-${port.shortCode}`
+  ).replace(/\.pdf$/i, '');
+
+  const handleConfirmLineupPdf = (customFilename: string) => {
+    exportLineupToPdf({
+      filename: customFilename,
+      port,
+      lineup: filteredVessels.length > 0 ? filteredVessels : portVessels,
+      lang,
+    });
+    setPdfPromptOpen(false);
+  };
 
   return (
     <section id="lineup" className="bg-white py-16 lg:py-20 border-b border-[#e5e5ea]">
@@ -59,15 +79,19 @@ export function VesselLineupSection({
                 ? `08. Line-Up de Buques · Conector ${port.lineupConnector}`
                 : `08. Vessel Line-Up · ${port.lineupConnector} Connector`}
             </p>
-            <h2 className="font-display text-[clamp(1.75rem,3vw,2.45rem)] font-semibold tracking-tight text-[#1d1d1f] [text-wrap:balance]">
+            <h2 className="font-display text-[clamp(1.75rem,3.2vw,2.45rem)] font-semibold tracking-tight text-[#1d1d1f] [text-wrap:balance]">
               {lang === 'es'
                 ? `Programación de buques en ${shortName}.`
                 : `Vessel Line-Up for ${shortName}.`}
             </h2>
             <p className="mt-2.5 text-[15px] text-[#424245]">
-              {lang === 'es'
-                ? 'Sincronizado con el modelo ISS Marine National Vessel Line-Up. Actualiza estatus operativos en vivo o abre la fuente oficial de Capitanía/ASIPONA.'
-                : 'Aligned with ISS Marine National Vessel Line-Up statuses. Update vessel status live or open the official ASIPONA / Harbor Master feed.'}
+              {disableDownloads
+                ? lang === 'es'
+                  ? 'Sincronizado con el modelo ISS Marine National Vessel Line-Up para consulta de programación portuaria.'
+                  : 'Aligned with ISS Marine National Vessel Line-Up statuses for live vessel schedule viewing.'
+                : lang === 'es'
+                ? 'Sincronizado con el modelo ISS Marine National Vessel Line-Up. Actualiza estatus operativos en vivo o descarga el Line-Up oficial en PDF.'
+                : 'Aligned with ISS Marine National Vessel Line-Up statuses. Update vessel status live or download the official Line-Up in PDF.'}
             </p>
           </div>
 
@@ -93,14 +117,27 @@ export function VesselLineupSection({
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
 
-            <button
-              type="button"
-              onClick={onOpenLineupManager}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-white bg-[#1d1d1f] hover:bg-[#333336] rounded-lg transition-colors whitespace-nowrap"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              {lang === 'es' ? 'Actualizar Line-Up' : 'Update Line-Up'}
-            </button>
+            {!disableDownloads && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setPdfPromptOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium text-white bg-[#0066cc] hover:bg-[#0052a3] rounded-lg transition-colors whitespace-nowrap"
+                >
+                  <FileDown className="w-3.5 h-3.5" />
+                  {lang === 'es' ? 'Descargar Line-Up PDF' : 'Download Line-Up PDF'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onOpenLineupManager}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-white bg-[#1d1d1f] hover:bg-[#333336] rounded-lg transition-colors whitespace-nowrap"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {lang === 'es' ? 'Actualizar Line-Up' : 'Update Line-Up'}
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -202,19 +239,37 @@ export function VesselLineupSection({
                 ? 'No hay buques registrados con este estatus para el puerto seleccionado.'
                 : 'No vessels registered under this status for the selected port.'}
             </p>
-            <button
-              type="button"
-              onClick={onOpenLineupManager}
-              className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#0066cc] hover:underline"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              {lang === 'es'
-                ? 'Agregar buque o importar desde Line-Up'
-                : 'Add vessel or import Line-Up'}
-            </button>
+            {!disableDownloads && (
+              <button
+                type="button"
+                onClick={onOpenLineupManager}
+                className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#0066cc] hover:underline"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                {lang === 'es'
+                  ? 'Agregar buque o importar desde Line-Up'
+                  : 'Add vessel or import Line-Up'}
+              </button>
+            )}
           </div>
         )}
       </div>
+
+      {!disableDownloads && (
+        <FilenamePromptModal
+          open={pdfPromptOpen}
+          defaultFilename={defaultLineupFilename}
+          title={lang === 'es' ? 'Nombrar y descargar Line-Up en PDF' : 'Name and download Line-Up PDF'}
+          subtitle={
+            lang === 'es'
+              ? 'El documento incluirá el logo integrado de Inchcape en el encabezado y la lista de buques filtrada.'
+              : 'Includes integrated Inchcape header branding and the filtered vessel lineup table.'
+          }
+          lang={lang}
+          onConfirm={handleConfirmLineupPdf}
+          onClose={() => setPdfPromptOpen(false)}
+        />
+      )}
     </section>
   );
 }

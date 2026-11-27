@@ -20,11 +20,14 @@ export function InteractivePortMap({
 }: InteractivePortMapProps) {
   const portAreas = areas.filter((a) => a.portId === port.id);
   const portTerminals = terminals.filter((t) => t.portId === port.id);
+  const areasWithTerminals = portAreas.filter((a) =>
+    portTerminals.some((t) => t.areaId === a.id)
+  );
   const [layerFilter, setLayerFilter] = useState<string>('ALL');
   const [selectedId, setSelectedId] = useState<string>(portTerminals[0]?.id ?? '');
 
   const effectiveLayerFilter =
-    layerFilter === 'ALL' || portAreas.some((a) => a.id === layerFilter)
+    layerFilter === 'ALL' || areasWithTerminals.some((a) => a.id === layerFilter)
       ? layerFilter
       : 'ALL';
 
@@ -49,12 +52,12 @@ export function InteractivePortMap({
           <h2 className="font-display text-[clamp(1.85rem,3.2vw,2.75rem)] font-semibold tracking-tight text-[#1d1d1f] [text-wrap:balance]">
             {port.id === 'mxcoa'
               ? lang === 'es'
-                ? 'Las 7 terminales estratégicas de Coatzacoalcos en su ubicación real.'
-                : 'Coatzacoalcos’ 7 strategic terminals across river and lagoon docks.'
-              : portAreas.length > 1
+                ? `Las ${portTerminals.length} terminales estratégicas de Coatzacoalcos en su ubicación real.`
+                : `Coatzacoalcos’ ${portTerminals.length} strategic terminals across river and lagoon docks.`
+              : areasWithTerminals.length > 1
               ? lang === 'es'
-                ? `${portAreas.length} recintos estratégicos en una sola vista geográfica.`
-                : `${portAreas.length} strategic port enclosures in a single geographic view.`
+                ? `${areasWithTerminals.length} recintos estratégicos en una sola vista geográfica.`
+                : `${areasWithTerminals.length} strategic port enclosures in a single geographic view.`
               : lang === 'es'
               ? 'Recinto portuario y terminales en una sola vista geográfica.'
               : 'Port enclosure and terminals in a single geographic view.'}
@@ -78,7 +81,7 @@ export function InteractivePortMap({
             >
               {lang === 'es' ? 'Todo el complejo' : 'Full Complex'} ({portTerminals.length})
             </button>
-            {portAreas.map((area) => (
+            {areasWithTerminals.map((area) => (
               <button
                 key={area.id}
                 type="button"
